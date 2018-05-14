@@ -22,8 +22,8 @@ requirements:
   run:
     - python
     - pillow >=4.1.1
-    - numpy >=1.11
-    - pytorch >=0.3
+    - numpy
+    - pytorch >=0.4
     - six
 
 test:
