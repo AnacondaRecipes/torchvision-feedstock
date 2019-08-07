@@ -1,4 +1,4 @@
-{% set version = "0.2.1" %}
+{% set version = "0.3.0" %}
 
 package:
   name: torchvision
@@ -7,32 +7,52 @@ package:
 source:
   fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
-  sha256: 91f1e21121dca7e14ec35b5f2127da77c8c52e61d39957ab5dd4a719a837a04c
+  sha256: c205f0618c268c6ed2f8abb869ef6eb83e5339c1336c243ad321a2f2a85195f0
 
 build:
   number: 0
   skip: True  # [not linux64]
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}
+  script:
+    - export NVCC_FLAGS="-ccbin ${CC}"
+    - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
+    - "{{ PYTHON }} -m pip install . -vv"
 
 requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
   host:
+    # GPU requirements
+    - cudatoolkit {{ cudatoolkit }}*
+    # other requirements
     - python
-    - setuptools
-
+    - pip
+    - pytorch >=1.1.0
+    - future  # [py2k]
   run:
+    # GPU requirements
+    - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}
+    # other requirements
     - python
     - pillow >=4.1.1
-    - numpy
-    - pytorch >=0.4
+    - numpy >1.11
+    - pytorch >=1.1.0
     - six
+    - future  # [py2k]
 
 test:
   imports:
     - torchvision
     - torchvision.datasets
-    - torchvision.models
     - torchvision.transforms
-    - torchvision.utils
+  source_files:
+    - test
+  requires:
+    - pytest
+    - scipy
+  commands:   # [not py==36]
+    pytest .  # [not py==36]
 
 about:
   home: http://pytorch.org/
@@ -45,4 +65,5 @@ about:
 
 extra:
   recipe-maintainers:
+    - jjhelmus
     - nehaljwani
