@@ -1,4 +1,4 @@
-{% set version = "0.3.0" %}
+{% set version = "0.4.0" %}
 
 package:
   name: torchvision
@@ -7,12 +7,13 @@ package:
 source:
   fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
-  sha256: c205f0618c268c6ed2f8abb869ef6eb83e5339c1336c243ad321a2f2a85195f0
+  sha256: c270d74e568bad4559fed4544f6dd1e22e2eb1c60b088e04a5bd5787c4150589
 
 build:
   number: 0
   skip: True  # [not linux64]
-  string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}
+  string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
+  string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
     - export NVCC_FLAGS="-ccbin ${CC}"
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
@@ -28,7 +29,7 @@ requirements:
     # other requirements
     - python
     - pip
-    - pytorch >=1.1.0
+    - pytorch 1.2.0
     - future  # [py2k]
   run:
     # GPU requirements
@@ -37,7 +38,7 @@ requirements:
     - python
     - pillow >=4.1.1
     - numpy >1.11
-    - pytorch >=1.1.0
+    - pytorch 1.2.0
     - six
     - future  # [py2k]
 
@@ -51,8 +52,9 @@ test:
   requires:
     - pytest
     - scipy
-  commands:   # [not py==36]
-    pytest .  # [not py==36]
+    - mock
+  commands:
+    pytest . -k "not video"
 
 about:
   home: http://pytorch.org/
