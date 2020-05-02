@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [not linux64]
+  skip: True  # [not unix]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -30,6 +30,7 @@ requirements:
     - python
     - pip
     - pytorch 1.3.1
+    - ffmpeg
   run:
     - _pytorch_select ==0.1             # [pytorch_variant == "cpu"]
     - _pytorch_select ==0.2             # [pytorch_variant == "gpu"]
@@ -37,7 +38,7 @@ requirements:
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - pillow >=4.1.1
+    - pillow >=4.1.1, <7
     - numpy >=1.11
     - pytorch 1.3.1
     - six
