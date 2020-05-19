@@ -10,8 +10,8 @@ source:
   sha256: 1184a27eab85c9e784bacc6f9d6fec99e168ab4eda6047ef9f709e7fdb22d8f9
 
 build:
-  number: 1000
-  skip: True  # [not linux64]
+  number: 0
+  skip: True  # [not (osx or linux64)]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
