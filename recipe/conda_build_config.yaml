@@ -2,10 +2,10 @@
 # cuda 10.0, gcc 7.3
 c_compiler_version:
   - 7.3    # [not osx]
-  - 4.0.1  # [osx]
+  - 10.0.0 # [osx]
 cxx_compiler_version:
   - 7.3    # [not osx]
-  - 4.0.1  # [osx]
+  - 10.0.0 # [osx]
 cudatoolkit:
   - 10.0
 python:
