@@ -10,7 +10,7 @@ cudatoolkit:
   - 10.0
 python:
 # - 2.7
-# - 3.6
+  - 3.6
   - 3.7
 pytorch_variant:
   - cpu
