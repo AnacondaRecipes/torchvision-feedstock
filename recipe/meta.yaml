@@ -1,4 +1,4 @@
-{% set version = "0.4.2" %}
+{% set version = "0.9.1" %}
 
 package:
   name: torchvision
@@ -7,7 +7,7 @@ package:
 source:
   fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
-  sha256: 1184a27eab85c9e784bacc6f9d6fec99e168ab4eda6047ef9f709e7fdb22d8f9
+  sha256: 79964773729880e0eee0e6af13f336041121d4cc8491a3e2c0e5f184cac8a718
 
 build:
   number: 0
