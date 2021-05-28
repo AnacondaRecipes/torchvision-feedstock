@@ -20,7 +20,13 @@ build:
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
     - export TORCHVISION_INCLUDE="${PREFIX}/include"
     - "{{ PYTHON }} -m pip install . -vv"
-
+  missing_dso_whitelist:
+    - "$RPATH/libc10.so"           # [linux]
+    - "$RPATH/libc10.dylib"        # [osx]
+    - "$RPATH/libtorch_cpu.so"     # [linux]
+    - "$RPATH/libtorch_cpu.dylib"  # [osx]
+    - "$RPATH/libc10.so"           # [linux]
+    - "$RPATH/libc10.dylib"        # [osx]
 requirements:
   build:
     - {{ compiler('c') }}
@@ -64,8 +70,8 @@ test:
     - mock  # [linux]
     - requests
   commands:
-    pytest . -k "not video" -k "not test_url_is_accessible"
-
+    pytest . -k "not (video or test_url_is_accessible)"  # [osx]
+    pytest . -k "not (video or test_url_is_accessible or test_maskrcnn_resnet50_fpn_cpu)"  # [linux]
 about:
   home: http://pytorch.org/
   license: BSD 3-Clause
