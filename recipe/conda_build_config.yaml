@@ -9,9 +9,9 @@ cxx_compiler_version:
 cudatoolkit:
   - 10.0
 python:
-# - 2.7
-  - 3.6
   - 3.7
+  - 3.8
+  - 3.9
 pytorch_variant:
   - cpu
 # - gpu
