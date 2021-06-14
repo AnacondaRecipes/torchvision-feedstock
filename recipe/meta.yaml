@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [not (osx or linux64)]
+  skip: True  # [not (osx or linux64 or aarch64)]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -40,8 +40,8 @@ requirements:
     - setuptools
     - jpeg
     - libpng
-    - pytorch 1.7.1  # [not s390x]
-    - pytorch 1.8.1  # [s390x]
+    - pytorch 1.7.1  # [linux and not (s390x or aarch64)]
+    - pytorch 1.8.1  # [linux and (s390x or aarch64)]
   run:
     - _pytorch_select ==0.1             # [pytorch_variant == "cpu"]
     - _pytorch_select ==0.2             # [pytorch_variant == "gpu"]
@@ -51,8 +51,8 @@ requirements:
     - python
     - pillow >=4.1.1
     - numpy >=1.11
-    - pytorch 1.7.1  # [not s390x]
-    - pytorch 1.8.1  # [s390x]
+    - pytorch 1.7.1  # [linux and not (s390x or aarch64)]
+    - pytorch 1.8.1  # [linux and (s390x or aarch64)]
     - six
 
 test:
