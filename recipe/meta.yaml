@@ -1,4 +1,4 @@
-{% set version = "0.8.2" %}
+{% set version = "0.11.3" %}
 
 package:
   name: torchvision
@@ -7,11 +7,11 @@ package:
 source:
   fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
-  sha256: 9a866c3c8feb23b3221ce261e6153fc65a98ce9ceaa71ccad017016945c178bf
+  sha256: b4c51d27589783e6e6941ecaa67b55f6f41633874ec37f80b64a0c92c3196e0c
 
 build:
   number: 0
-  skip: True  # [not (osx or linux64 or aarch64)]
+  skip: True  # [py<36 or py>39]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -36,24 +36,23 @@ requirements:
     - cudatoolkit {{ cudatoolkit }}*  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - pip
     - setuptools
-    - jpeg
-    - libpng
-    - pytorch 1.7.1  # [linux and not (s390x or aarch64)]
-    - pytorch 1.8.1  # [linux and (s390x or aarch64)]
+    - pip
+    - pytorch ==1.10.2
+    - pillow >=5.3.0,!=8.3.*
+    # - ffmpeg
   run:
-    - _pytorch_select ==0.1             # [pytorch_variant == "cpu"]
-    - _pytorch_select ==0.2             # [pytorch_variant == "gpu"]
+    # - _pytorch_select * cpu*             # [pytorch_variant == "cpu"]
+    # - _pytorch_select * gpu*             # [pytorch_variant == "gpu"]
     # GPU requirements
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - pillow >=4.1.1
-    - numpy >=1.11
-    - pytorch 1.7.1  # [linux and not (s390x or aarch64)]
-    - pytorch 1.8.1  # [linux and (s390x or aarch64)]
-    - six
+    - setuptools
+    - pip
+    - pytorch ==1.10.2
+    - pillow >=5.3.0,!=8.3.*
+    # - ffmpeg
 
 test:
   imports:
@@ -66,8 +65,8 @@ test:
     - test
   requires:
     - pytest
+    - pytest-mock
     - scipy
-    - mock  # [linux]
     - requests
   commands:
     pytest . -k "not (video or test_url_is_accessible)"  # [osx]
