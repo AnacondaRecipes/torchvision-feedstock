@@ -77,6 +77,7 @@ test:
     - pytest
     - pytest-mock
     - scipy
+    - setuptools
     - requests
   commands:
     pytest . --verbose -k "not (video or test_url_is_accessible)"  # [osx]
