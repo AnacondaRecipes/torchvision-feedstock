@@ -61,6 +61,7 @@ requirements:
     - {{ pin_compatible('numpy') }}
     - pillow >=5.3.0,!=8.3.*
     - pytorch ==1.10.2
+    - setuptools
     # - ffmpeg
 
 test:
