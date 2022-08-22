@@ -8,6 +8,9 @@ source:
   fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
   sha256: b4c51d27589783e6e6941ecaa67b55f6f41633874ec37f80b64a0c92c3196e0c
+  patches:
+    # https://github.com/pytorch/vision/pull/5261
+    - patches/0001-avoid-hard-coded-gcc.patch
 
 build:
   number: 0
@@ -18,28 +21,25 @@ build:
     - export NVCC_FLAGS="-ccbin ${CC}"
     - export FORCE_CUDA=0  # [pytorch_variant != "gpu"]
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
-    - export TORCHVISION_INCLUDE="${PREFIX}/include"
+    - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
+    - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
     - "{{ PYTHON }} -m pip install . -vv"
-  missing_dso_whitelist:
-    - "$RPATH/libc10.so"           # [linux]
-    - "$RPATH/libc10.dylib"        # [osx]
-    - "$RPATH/libtorch_cpu.so"     # [linux]
-    - "$RPATH/libtorch_cpu.dylib"  # [osx]
-    - "$RPATH/libc10.so"           # [linux]
-    - "$RPATH/libc10.dylib"        # [osx]
+
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - m2-patch  # [win]
+    - patch     # [not win]
   host:
     # GPU requirements
     - cudatoolkit {{ cudatoolkit }}*  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - setuptools
     - pip
-    - pytorch ==1.10.2
     - pillow >=5.3.0,!=8.3.*
+    - pytorch ==1.10.2
+    - setuptools
     # - ffmpeg
   run:
     # - _pytorch_select * cpu*             # [pytorch_variant == "cpu"]
@@ -48,10 +48,9 @@ requirements:
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - setuptools
-    - pip
-    - pytorch ==1.10.2
+    - {{ pin_compatible('numpy') }}
     - pillow >=5.3.0,!=8.3.*
+    - pytorch ==1.10.2
     # - ffmpeg
 
 test:
@@ -69,16 +68,17 @@ test:
     - scipy
     - requests
   commands:
-    pytest . -k "not (video or test_url_is_accessible)"  # [osx]
-    pytest . -k "not (video or test_url_is_accessible or test_maskrcnn_resnet50_fpn_cpu)"  # [linux]
+    pytest . --verbose -k "not (video or test_url_is_accessible)"  # [osx]
+    pytest . --verbose -k "not (video or test_url_is_accessible or test_maskrcnn_resnet50_fpn_cpu)"  # [linux]
+
 about:
-  home: http://pytorch.org/
-  license: BSD 3-Clause
+  home: https://pytorch.org/
+  license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE
   summary: Image and video datasets and models for torch deep learning
   dev_url: https://github.com/pytorch/vision
-  doc_url: http://pytorch.org/docs/master/torchvision
+  doc_url: https://pytorch.org/docs/master/torchvision
 
 extra:
   recipe-maintainers:
