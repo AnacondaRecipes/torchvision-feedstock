@@ -46,8 +46,6 @@ requirements:
     - python
     - jpeg
     - libpng
-    - numpy 1.19  # [py==38 or py==39]
-    - numpy 1.21  # [py>39]
     - pip
     - pillow >=5.3.0,!=8.3.*
     - pytorch ==1.10.2
