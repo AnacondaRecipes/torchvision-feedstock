@@ -14,7 +14,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [py<36 or py>39 or s390x]
+  skip: True  # [py<36 or py>39 or s390x or ppc64le]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -46,6 +46,8 @@ requirements:
     - python
     - jpeg
     - libpng
+    - numpy 1.19  # [py==38 or py==39]
+    - numpy 1.21  # [py>39]
     - pip
     - pillow >=5.3.0,!=8.3.*
     - pytorch ==1.10.2
