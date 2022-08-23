@@ -18,8 +18,10 @@ build:
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
-    - export NVCC_FLAGS="-ccbin ${CC}"
-    - export FORCE_CUDA=0  # [pytorch_variant != "gpu"]
+    - set NVCC_FLAGS="-ccbin ${CC}"         # [win]
+    - export NVCC_FLAGS="-ccbin ${CC}"  # [not win]
+    - set FORCE_CUDA=0  # [win and (pytorch_variant != "gpu")]
+    - export FORCE_CUDA=0  # [not win and (pytorch_variant != "gpu")]
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
     - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
     - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
@@ -31,11 +33,17 @@ build:
     - "$RPATH/libtorch_cpu.dylib"  # [osx]
     - "$RPATH/libc10.so"           # [linux]
     - "$RPATH/libc10.dylib"        # [osx]
+    - "$RPATH/c10.dll"             # [win]
+    - "$RPATH/torch_cpu.dll"       # [win] 
 
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    # libpng and libjpeg must be available at compilation time in order to be available,
+    # see https://github.com/pytorch/vision/tree/v0.11.3#image-backend
+    - jpeg      # [not win]
+    - libpng
     - m2-patch  # [win]
     - patch     # [not win]
     - sysroot_linux-64 ==2.17         # [linux64]
@@ -44,7 +52,7 @@ requirements:
     - cudatoolkit {{ cudatoolkit }}*  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - jpeg
+    - jpeg      # [not win]
     - libpng
     - pip
     - pillow >=5.3.0,!=8.3.*
