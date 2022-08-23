@@ -18,11 +18,10 @@ build:
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
-    - set NVCC_FLAGS="-ccbin ${CC}"         # [win]
     - export NVCC_FLAGS="-ccbin ${CC}"  # [not win]
     - set FORCE_CUDA=0  # [win and (pytorch_variant != "gpu")]
     - export FORCE_CUDA=0  # [not win and (pytorch_variant != "gpu")]
-    - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"
+    - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"    # [not win]
     - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
     - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
     - "{{ PYTHON }} -m pip install . -vv"
@@ -88,6 +87,7 @@ test:
   source_files:
     - test
   requires:
+    - pip
     - pytest
     - pytest-mock
     - scipy
@@ -95,6 +95,7 @@ test:
     # For pkg_resources
     - setuptools
   commands:
+    - python -m pip check
     # CIs do not have enough resources to run the full suite of model tests
     - rm -f test/test_models.py  # [unix]
     - del /f test\test_models.py  # [win]
