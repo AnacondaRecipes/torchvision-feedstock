@@ -57,6 +57,9 @@ requirements:
     - pillow >=5.3.0,!=8.3.*
     - pytorch ==1.10.2
     - setuptools
+    # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
+    # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
+    # and https://github.com/conda-forge/torchvision-feedstock/commit/4ec4b5f4eb4889dbb1f8da34662ea622bb4b3828
     # - ffmpeg
   run:
     # - _pytorch_select * cpu*             # [pytorch_variant == "cpu"]
@@ -71,10 +74,14 @@ requirements:
     - setuptools
     # - ffmpeg
 
-{% set tests_to_skip = "video or test_url_is_accessible" %}
-# Skip some tests that require module 'av': ModuleNotFoundError: No module named 'av'
+# Skip test_url_is_accessible instead of hitting 20+ servers per run, since
+# each server might be occasionally unresponsive and end up failing our CI
+{% set tests_to_skip = "test_url_is_accessible" %}
+
+# 2022/08/25: Skipping the av tests (they require module 'av'): ModuleNotFoundError: No module named 'av',
+# because the av package depends on ffmpeg, which we are not requiring as a run requirement because torchvision has bugs with certain ffmpeg versions.
 {% set tests_to_skip = tests_to_skip + " or test_classes or test_feature_types or test_feature_types or test_is_valid_file or test_num_examples or test_smoke or test_str_smoke or test_transforms" %}
-# AssertionError: Tensor-likes are not equal!
+# 2022/08/25: AssertionError: Tensor-likes are not equal!
 {% set tests_to_skip = tests_to_skip + " or test_adjust_gamma" %}
 
 test:

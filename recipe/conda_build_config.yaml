@@ -1,6 +1,9 @@
-pytorch_variant:
-  - cpu
 c_compiler:
   - vs2019                     # [win]
 cxx_compiler:
   - vs2019                     # [win]
+#cudatoolkit:
+#  - 10.0
+pytorch_variant:
+  - cpu
+  # - gpu
