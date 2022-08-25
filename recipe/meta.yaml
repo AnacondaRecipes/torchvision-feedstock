@@ -119,7 +119,7 @@ about:
   license_file: LICENSE
   summary: Image and video datasets and models for torch deep learning
   dev_url: https://github.com/pytorch/vision
-  doc_url: https://pytorch.org/docs/master/torchvision
+  doc_url: https://pytorch.org/docs/stable/index.html
 
 extra:
   recipe-maintainers:
