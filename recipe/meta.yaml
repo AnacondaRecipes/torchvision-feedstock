@@ -110,7 +110,7 @@ test:
     - del /f test\test_models.py     # [win]
     - pytest --verbose -k "not ({{ tests_to_skip }})" test/  # [osx]
     - pytest --verbose -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
-    - pytest --verbose -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [not (linux and aarch64)]
+    - pytest --verbose -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
 
 about:
   home: https://pytorch.org/
