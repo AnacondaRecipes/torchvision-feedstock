@@ -1,19 +1,9 @@
-# cuda 9.2, gcc 7.3
-# cuda 10.0, gcc 7.3
-c_compiler_version:
-  - 7.3  # [linux64]
-  - 10   # [(osx and x86_64) or aarch64]
-  - 12   # [osx and arm64]
-cxx_compiler_version:
-  - 7.3  # [linux64]
-  - 10   # [(osx and x86_64) or aarch64]
-  - 12   # [osx and arm64]
-cudatoolkit:
-  - 10.0
-python:
-  - 3.7  # [not (osx and arm64)]
-  - 3.8
-  - 3.9
+c_compiler:
+  - vs2019                     # [win]
+cxx_compiler:
+  - vs2019                     # [win]
+#cudatoolkit:
+#  - 10.0
 pytorch_variant:
   - cpu
-# - gpu
+  # - gpu
