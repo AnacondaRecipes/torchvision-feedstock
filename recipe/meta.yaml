@@ -13,7 +13,7 @@ source:
     - patches/0001-avoid-hard-coded-gcc.patch
 
 build:
-  number: 0
+  number: 1
   skip: True  # [py<36 or py>39 or s390x or ppc64le]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
@@ -105,9 +105,8 @@ test:
     # For pkg_resources
     - setuptools
   commands:
-    # scipy 1.7.3 has requirement numpy<1.23.0,>=1.16.5, but you have numpy 1.23.1.
-    - python -m pip check || true    # [not win]
-    #- python -m pip check || exit 1  # [win]
+    - python -m pip check || true      # [not win]
+    - python -m pip check || (exit 1)  # [win]
     # CIs do not have enough resources to run the full suite of model tests
     - rm -f test/test_models.py      # [unix]
     - del /f test\test_models.py     # [win]
