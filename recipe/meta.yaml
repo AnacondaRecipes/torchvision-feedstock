@@ -1,4 +1,6 @@
-{% set version = "0.11.3" %}
+{% set version = "0.13.1" %}
+{% set numpy = "1.20.3" %}  # [py<310 and (not osx and arm64)]
+{% set numpy = "1.21" %}  # [py>=310 or (osx and arm64)]
 
 package:
   name: torchvision
@@ -7,14 +9,11 @@ package:
 source:
   fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
-  sha256: b4c51d27589783e6e6941ecaa67b55f6f41633874ec37f80b64a0c92c3196e0c
-  patches:
-    # https://github.com/pytorch/vision/pull/5261
-    - patches/0001-avoid-hard-coded-gcc.patch
+  sha256: c32fab734e62c7744dadeb82f7510ff58cc3bca1189d17b16aa99b08afc42249
 
 build:
-  number: 2
-  skip: True  # [py<36 or s390x or ppc64le]
+  number: 0
+  skip: True  # [py<37 or s390x or ppc64le]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -23,7 +22,7 @@ build:
     - export FORCE_CUDA=0  # [not win and (pytorch_variant != "gpu")]
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"    # [not win]
     - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
-    - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
+    - export TORCHVISION_INCLUDE="${PREFIX}/include"
     - "{{ PYTHON }} -m pip install . -vv"
   missing_dso_whitelist:
     - "$RPATH/libc10.so"           # [linux]
@@ -52,10 +51,12 @@ requirements:
     - python
     - jpeg      # [not win]
     - libpng
+    - numpy {{ numpy }}
     - pip
     - pillow >=5.3.0,!=8.3.*
-    - pytorch ==1.10.2
+    - pytorch
     - setuptools
+    - wheel
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
     # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
     # and https://github.com/conda-forge/torchvision-feedstock/commit/4ec4b5f4eb4889dbb1f8da34662ea622bb4b3828
@@ -67,11 +68,13 @@ requirements:
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - {{ pin_compatible('numpy') }}
+    - numpy >={{ numpy }},<2.0a0
     - pillow >=5.3.0,!=8.3.*
-    - pytorch ==1.10.2
+    - pytorch
+    - requests
     - setuptools
     # - ffmpeg
+    - typing_extensions
 
 # Skip test_url_is_accessible instead of hitting 20+ servers per run, since
 # each server might be occasionally unresponsive and end up failing our CI
@@ -94,24 +97,23 @@ test:
     - torchvision.models
     - torchvision.utils
   source_files:
-    - test
+    - test/
   requires:
     - pip
     - pytest
     - pytest-mock
     - scipy
-    - requests
     # For pkg_resources
     - setuptools
   commands:
     - python -m pip check || true      # [not win]
     - python -m pip check || (exit 1)  # [win]
     # CIs do not have enough resources to run the full suite of model tests
-    - rm -f test/test_models.py      # [unix]
-    - del /f test\test_models.py     # [win]
-    - pytest --verbose -k "not ({{ tests_to_skip }})" test/  # [osx]
-    - pytest --verbose -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
-    - pytest --verbose -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
+    - rm -f test/test_models.py test/test_extended_models.py     # [unix]
+    - del /f test\test_models.py test\test_extended_models.py    # [win]
+    - pytest --verbose -v -k "not ({{ tests_to_skip }})" test/  # [osx]
+    - pytest --verbose -v -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
+    - pytest --verbose -v -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
 
 about:
   home: https://pytorch.org/
@@ -122,7 +124,6 @@ about:
   summary: Image and video datasets and models for torch deep learning
   dev_url: https://github.com/pytorch/vision
   doc_url: https://pytorch.org/docs/stable/index.html
-  doc_source_url: https://github.com/pytorch/vision/tree/main/docs/source
 
 extra:
   recipe-maintainers:
