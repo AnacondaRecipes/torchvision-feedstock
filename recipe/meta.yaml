@@ -13,7 +13,7 @@ source:
     - patches/0001-avoid-hard-coded-gcc.patch
 
 build:
-  number: 2
+  number: 3
   skip: True  # [py<36 or s390x or ppc64le]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
@@ -54,7 +54,7 @@ requirements:
     - libpng
     - pip
     - pillow >=5.3.0,!=8.3.*
-    - pytorch ==1.10.2
+    - pytorch
     - setuptools
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
     # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
@@ -69,7 +69,7 @@ requirements:
     - python
     - {{ pin_compatible('numpy') }}
     - pillow >=5.3.0,!=8.3.*
-    - pytorch ==1.10.2
+    - pytorch
     - setuptools
     # - ffmpeg
 
