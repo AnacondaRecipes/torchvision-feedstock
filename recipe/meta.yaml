@@ -22,7 +22,7 @@ build:
     - export FORCE_CUDA=0  # [not win and (pytorch_variant != "gpu")]
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"    # [not win]
     - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
-    - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win
+    - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
     - "{{ PYTHON }} -m pip install . -vv"
   missing_dso_whitelist:
     - "$RPATH/libc10.so"           # [linux]
