@@ -51,7 +51,6 @@ requirements:
     - python
     - jpeg      # [not win]
     - libpng
-    - numpy {{ numpy }}
     - pip
     - pillow >=5.3.0,!=8.3.*
     - pytorch
