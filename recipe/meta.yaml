@@ -1,6 +1,4 @@
 {% set version = "0.13.1" %}
-{% set numpy = "1.19" %}  # [py<310 and (not osx and arm64)]
-{% set numpy = "1.21" %}  # [py>=310 or (osx and arm64)]
 
 package:
   name: torchvision
@@ -67,7 +65,8 @@ requirements:
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - numpy >={{ numpy }},<2.0a0
+    - numpy >=1.21.2,<2.0a0 # [py>=310]
+    - numpy >=1.19.2,<2.0a0 # [py<=39]
     - pillow >=5.3.0,!=8.3.*
     - pytorch
     - requests
@@ -108,7 +107,7 @@ test:
     - python -m pip check || true      # [not win]
     - python -m pip check || (exit 1)  # [win]
     # CIs do not have enough resources to run the full suite of model tests
-    - rm -f test/test_models.py test/test_extended_models.py     # [unix]
+    - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
     - pytest --verbose -k "not ({{ tests_to_skip }})" test/  # [osx]
     - pytest --verbose -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
