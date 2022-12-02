@@ -104,6 +104,7 @@ test:
     # For pkg_resources
     - setuptools
   commands:
+    - cat run_test.sh
     - python -m pip check || true      # [not win]
     - python -m pip check || (exit 1)  # [win]
     # CIs do not have enough resources to run the full suite of model tests
