@@ -104,15 +104,14 @@ test:
     # For pkg_resources
     - setuptools
   commands:
-    - cat run_test.sh
-    - python -m pip check || true      # [not win]
-    - python -m pip check || (exit 1)  # [win]
+    - pip check || true      # [not win]
+    - pip check || (exit 1)  # [win]
     # CIs do not have enough resources to run the full suite of model tests
     - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
-    - pytest --verbose -k "not ({{ tests_to_skip }})" test/  # [osx]
-    - pytest --verbose -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
-    - pytest --verbose -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
+    - pytest -k "not ({{ tests_to_skip }})" test/  # [osx]
+    - pytest -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
+    - pytest -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
 
 about:
   home: https://pytorch.org/
