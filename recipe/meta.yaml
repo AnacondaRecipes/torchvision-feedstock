@@ -109,7 +109,7 @@ test:
     # CIs do not have enough resources to run the full suite of model tests
     - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
-    - pytest -k "not ({{ tests_to_skip }})" test/  # [osx]
+    - pytest test/  # [osx]
     - pytest -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
     - pytest -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
 
