@@ -97,6 +97,7 @@ test:
   source_files:
     - test
   requires:
+    - openssl  # [osx and x86_64]
     - pip
     - pytest
     - pytest-mock
