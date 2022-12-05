@@ -65,6 +65,8 @@ requirements:
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
+    # Numpy pinnings aligned with the pytorch recipe,
+    # see https://github.com/AnacondaRecipes/pytorch-feedstock/blob/ab185825c85cce2761ada2fc519b986845ddeb7d/recipe/meta.yaml#L121
     - numpy >=1.21.2,<2.0a0 # [py>=310]
     - numpy >=1.19.2,<2.0a0 # [py<=39]
     - pillow >=5.3.0,!=8.3.*
@@ -99,8 +101,6 @@ test:
   source_files:
     - test
   requires:
-    # Workaround for 'Abort trap: 6' error on macOS. Need further investigation.
-    - openssl  # [osx and x86_64]
     - pip
     - pytest
     - pytest-mock
@@ -113,6 +113,7 @@ test:
     # CIs do not have enough resources to run the full suite of model tests
     - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
+    # 2022/12/5: Unexpected python error on osx-64 for python 3.10: `Abort trap: 6 pytest test/`
     #- pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and x86_64) and py<310]
     - pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and arm64)]
     - pytest -v -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
