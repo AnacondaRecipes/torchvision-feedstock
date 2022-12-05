@@ -40,8 +40,6 @@ requirements:
     # see https://github.com/pytorch/vision/tree/v0.11.3#image-backend
     - jpeg      # [not win]
     - libpng
-    - m2-patch  # [win]
-    - patch     # [not win]
   host:
     # GPU requirements
     - cudatoolkit {{ cudatoolkit }}*  # [pytorch_variant == "gpu"]
@@ -52,7 +50,6 @@ requirements:
     - pip
     - pillow >=5.3.0,!=8.3.*
     - pytorch
-    - setuptools
     - wheel
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
     # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
@@ -88,8 +85,6 @@ requirements:
 # 2022/08/30: This test seems to just destroy the memory of the system.
 {% set tests_to_skip = tests_to_skip + " or test_forward_backward" %}
 {% set tests_to_skip = tests_to_skip + " or test_jit_forward_backward" %}
-# 2022/12/02: test_url_is_accessible fails on osx-64.
-{% set tests_to_skip = tests_to_skip + " or test_url_is_accessible" %}  # [osx]
 
 test:
   imports:
