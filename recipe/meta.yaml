@@ -49,7 +49,7 @@ requirements:
     - libpng
     - pip
     - pillow >=5.3.0,!=8.3.*
-    - pytorch
+    - pytorch 1.12.1
     - wheel
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
     # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
