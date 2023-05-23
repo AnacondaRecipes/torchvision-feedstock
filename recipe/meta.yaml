@@ -10,7 +10,7 @@ source:
   sha256: c32fab734e62c7744dadeb82f7510ff58cc3bca1189d17b16aa99b08afc42249
 
 build:
-  number: 0
+  number: 1
   skip: True  # [py<37 or s390x or ppc64le]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
