@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [py<37 or s390x or ppc64le]
+  skip: True  # [py<37 or s390x]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -64,8 +64,7 @@ requirements:
     - python
     # Numpy pinnings aligned with the pytorch recipe,
     # see https://github.com/AnacondaRecipes/pytorch-feedstock/blob/ab185825c85cce2761ada2fc519b986845ddeb7d/recipe/meta.yaml#L121
-    - numpy >=1.21.2,<2.0a0 # [py>=310]
-    - numpy >=1.19.2,<2.0a0 # [py<=39]
+    - numpy {{ numpy }}
     - pillow >=5.3.0,!=8.3.*
     - pytorch
     - requests
