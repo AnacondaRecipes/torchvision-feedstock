@@ -41,15 +41,15 @@ requirements:
     - jpeg      # [not win]
     - libpng
   host:
-    # GPU requirements
-    - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
-    # other requirements
     - python
+    - pip
+    - wheel
+    - pytorch 2.0.1
+    # libpng and libjpeg must be available at compilation time
     - jpeg 9e  # [not win]
     - libpng 1.6.39
-    - pip
-    - pytorch 2.0.1
-    - wheel
+    # GPU requirements
+    - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
     # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
     # and https://github.com/conda-forge/torchvision-feedstock/commit/4ec4b5f4eb4889dbb1f8da34662ea622bb4b3828
