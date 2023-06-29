@@ -120,10 +120,9 @@ about:
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE
-  summary: This library is part of the PyTorch project. PyTorch is an open source machine learning framework.
+  summary: Image and video datasets and models for torch deep learning
   description: |
     The torchvision package consists of popular datasets, model architectures, and common image transformations for computer vision.
-  summary: Image and video datasets and models for torch deep learning
   dev_url: https://github.com/pytorch/vision
   doc_url: https://pytorch.org/docs/stable/index.html
 
