@@ -45,12 +45,10 @@ requirements:
     - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - jpeg      # [not win]
-    - libpng
+    - jpeg 9e  # [not win]
+    - libpng 1.6.39
     - pip
     - pillow 9.4.0
-    # exact pytorch pinning is due to the fact that naming of source files used to build torchvisions have changed over
-    # the course of pytorch releases
     - pytorch 2.0.1
     - wheel
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
