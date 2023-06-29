@@ -45,6 +45,8 @@ requirements:
     - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
+    - jpeg 9e  # [not win]
+    - libpng 1.6.39
     - pip
     - pytorch 2.0.1
     - wheel
