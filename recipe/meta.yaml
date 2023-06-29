@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [py<37 or s390x]
+  skip: True  # [py<37 or s390x or ppc64le]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
