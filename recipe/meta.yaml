@@ -45,10 +45,7 @@ requirements:
     - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
     # other requirements
     - python
-    - jpeg 9e  # [not win]
-    - libpng 1.6.39
     - pip
-    - pillow 9.4.0
     - pytorch 2.0.1
     - wheel
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
@@ -56,21 +53,16 @@ requirements:
     # and https://github.com/conda-forge/torchvision-feedstock/commit/4ec4b5f4eb4889dbb1f8da34662ea622bb4b3828
     # - ffmpeg
   run:
-    # - _pytorch_select * cpu*             # [pytorch_variant == "cpu"]
-    # - _pytorch_select * gpu*             # [pytorch_variant == "gpu"]
     # GPU requirements
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
-    # other requirements
-    - python
-    # Numpy pinnings aligned with the pytorch recipe,
-    # see https://github.com/AnacondaRecipes/pytorch-feedstock/blob/ab185825c85cce2761ada2fc519b986845ddeb7d/recipe/meta.yaml#L121
     - numpy {{ numpy }}
     - pillow >=5.3.0,!=8.3.*
     - pytorch
     - requests
+    - jpeg  # [not win]
+    - libpng
     - setuptools
     # - ffmpeg
-    - typing_extensions
 
 # Skip test_url_is_accessible instead of hitting 20+ servers per run, since
 # each server might be occasionally unresponsive and end up failing our CI
