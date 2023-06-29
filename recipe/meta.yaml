@@ -49,7 +49,9 @@ requirements:
     - libpng
     - pip
     - pillow 9.4.0
-    - pytorch
+    # exact pytorch pinning is due to the fact that naming of source files used to build torchvisions have changed over
+    # the course of pytorch releases
+    - pytorch 2.0.1
     - wheel
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
     # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
