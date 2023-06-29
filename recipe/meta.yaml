@@ -102,7 +102,7 @@ test:
     - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
     - cp -r ../work_moved_torchvision-{{ version }}-{{ pytorch_variant }}_py{{ CONDA_PY }}h*_{{ PKG_BUILDNUM }}_*/references .  # [not win]
-    - xcopy ..\work_moved_torchvision-{{ version }}-{{ pytorch_variant }}_py{{ CONDA_PY }}h*_{{ PKG_BUILDNUM }}_*\references . /E /H /C /I  # [win]
+    - xcopy /E /H /C /I ..\work_moved_torchvision-{{ version }}-*\references .  # [win]
     # 2022/12/5: Unexpected python error on osx-64 for python 3.10: `Abort trap: 6 pytest test/`
     #- pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and x86_64) and py<310]
     - pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and arm64)]
