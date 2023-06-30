@@ -44,6 +44,7 @@ requirements:
     - python
     - pip
     - wheel
+    - numpy {{ numpy }}
     - pytorch 2.0.1
     # libpng and libjpeg must be available at compilation time
     - jpeg 9e  # [not win]
@@ -58,6 +59,7 @@ requirements:
     # GPU requirements
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
     - {{ pin_compatible('numpy') }}
+    - python
     - pillow >=5.3.0,!=8.3.*
     - pytorch
     - requests
