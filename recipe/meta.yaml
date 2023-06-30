@@ -12,6 +12,7 @@ source:
 build:
   number: 0
   skip: True  # [py<37 or s390x or ppc64le]
+  skip: True  # [not win]
   string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
   string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
   script:
@@ -104,7 +105,7 @@ test:
     - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
     - cp -r ../work_moved_torchvision-{{ version }}-{{ pytorch_variant }}_py{{ CONDA_PY }}h*_{{ PKG_BUILDNUM }}_*/references .  # [not win]
-    - Xcopy.exe /E /H /C ..\work_moved_torchvision-{{ version }}-*\references .  # [win]
+    - COPY /E /H /C ..\work_moved_torchvision-{{ version }}-*\references .  # [win]
     # 2022/12/5: Unexpected python error on osx-64 for python 3.10: `Abort trap: 6 pytest test/`
     #- pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and x86_64) and py<310]
     - pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and arm64)]
