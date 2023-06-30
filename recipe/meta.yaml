@@ -57,7 +57,7 @@ requirements:
   run:
     # GPU requirements
     - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
-    - numpy {{ numpy }}
+    - {{ pin_compatible('numpy') }}
     - pillow >=5.3.0,!=8.3.*
     - pytorch
     - requests
