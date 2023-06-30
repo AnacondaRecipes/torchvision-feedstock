@@ -105,6 +105,10 @@ test:
     - rm -f test/test_models.py test/test_extended_models.py     # [not win]
     - del /f test\test_models.py test\test_extended_models.py    # [win]
     - cp -r $SRC_DIR/../work_moved_torchvision-*/references .  # [not win]
+    - dir %SRC_DIR%  # [win]
+    - dir %SRC_DIR%\..  # [win]
+    - dir %SRC_DIR%\..\work  # [win]
+    - dir %SRC_DIR%\..\work_moved_torchvision-*  # [win]
     - xcopy %SRC_DIR%\..\work_moved_torchvision-*\references %SRC_DIR% /E/H  # [win]
     # 2022/12/5: Unexpected python error on osx-64 for python 3.10: `Abort trap: 6 pytest test/`
     #- pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and x86_64) and py<310]
