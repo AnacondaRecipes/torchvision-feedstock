@@ -47,7 +47,7 @@ requirements:
     - numpy {{ numpy }}
     - pytorch 2.0.1
     # libpng and libjpeg must be available at compilation time
-    - jpeg 9e  # [not win]
+    - jpeg {{ jpeg }}  # [not win]
     - libpng {{ libpng }}
     # GPU requirements
     - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
