@@ -48,7 +48,7 @@ requirements:
     - pytorch 2.0.1
     # libpng and libjpeg must be available at compilation time
     - jpeg 9e  # [not win]
-    - libpng 1.6.39
+    - libpng {{ libpng }}
     # GPU requirements
     - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
     # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
