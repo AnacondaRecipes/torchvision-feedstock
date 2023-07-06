@@ -80,6 +80,8 @@ requirements:
 # 2022/08/30: This test seems to just destroy the memory of the system.
 {% set tests_to_skip = tests_to_skip + " or test_forward_backward" %}
 {% set tests_to_skip = tests_to_skip + " or test_jit_forward_backward" %}
+# 2023/07/06: CIs do not have enough resources to run the full suite of model tests
+{% set tests_to_skip = tests_to_skip + " or test_get_model or test_get_model_builder or test_get_model_weights or test_weights_copyable or test_weights_deserializable or test_list_models or test_get_weight or test_naming_conventions or test_schema_meta_validation or test_transforms_jit or test_no_warn or test_pretrained_pos or test_pretrained_kw or test_equivalent_behavior_weights or test_multi_params or test_default_callable or test_pretrained_deprecation" %}
 
 test:
   imports:
@@ -101,8 +103,6 @@ test:
   commands:
     - pip check || true      # [not win]
     - pip check || (exit 1)  # [win]
-    # 2022/12/5: Unexpected python error on osx-64 for python 3.10: `Abort trap: 6 pytest test/`
-    #- pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and x86_64) and py<310]
     - pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and arm64)]
     - pytest -v -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
     - pytest -v -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
