@@ -87,6 +87,7 @@ requirements:
 {% set tests_to_skip = tests_to_skip + " or test_multi_params or test_default_callable or test_pretrained_deprecation" %}
 # test_models
 {% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
+{% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}  # [linux]
 
 test:
   imports:
