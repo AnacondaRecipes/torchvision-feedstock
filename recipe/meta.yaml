@@ -5,7 +5,6 @@ package:
   version: {{ version }}
 
 source:
-  fn: torchvision-{{ version }}.tar.gz
   url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
   sha256: 1efcb80e0a6e42c54f07ee16167839b4d302aeeecc12839cc47c74b06a2c20d4
 
