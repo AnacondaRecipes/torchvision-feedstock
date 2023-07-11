@@ -20,7 +20,7 @@ build:
     - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"    # [not win]
     - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
     - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
-    - "{{ PYTHON }} -m pip install . -vvv --no-deps --no-build-isolation"
+    - "{{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation"
   missing_dso_whitelist:
     - "$RPATH/libc10.so"           # [linux]
     - "$RPATH/libc10.dylib"        # [osx]
@@ -74,8 +74,6 @@ requirements:
 # 2022/08/30: Skipping the av tests (they require module 'av'): ModuleNotFoundError: No module named 'av',
 # because the av package depends on ffmpeg, which we are not requiring as a run requirement because torchvision has bugs with certain ffmpeg versions.
 {% set tests_to_skip = tests_to_skip + " or test_classes or test_feature_types or test_feature_types or test_is_valid_file or test_num_examples or test_smoke or test_str_smoke or test_transforms" %}
-# 2022/08/30: AssertionError: Tensor-likes are not equal!
-#{% set tests_to_skip = tests_to_skip + " or test_adjust_gamma" %}
 # 2022/08/30: This test seems to just destroy the memory of the system.
 # they actually run on most platform except but were still hanging on linux-aarch64 and osx-arm64
 {% set tests_to_skip = tests_to_skip + " or test_forward_backward" %}
