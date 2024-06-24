@@ -39,8 +39,8 @@ requirements:
     #- {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}
+    - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
     - libcublas-dev                          # [build_platform != target_platform]
     - libcusolver-dev                        # [build_platform != target_platform]
     - libcusparse-dev                        # [build_platform != target_platform]
@@ -53,11 +53,15 @@ requirements:
     - python
     - pip
     - setuptools
+    - wheel
     - cudnn                                  # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}
     - libcublas-dev
     - libcusolver-dev
     - libcusparse-dev
+    {% else %}
+    - cudatoolkit {{ cuda_compiler_version }}
+    - cuda-version {{ cuda_compiler_version }}
     {% endif %}
     # split off image/video into separate outputs?
     - libjpeg-turbo
@@ -73,14 +77,12 @@ requirements:
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*
     - requests
   run:
-    # GPU requirements
-    - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
-    - {{ pin_compatible('numpy') }}
     - python
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*
     - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     - requests
+    - - __cuda >={{ cuda_compiler_version }}
 
 test:
   requires:
