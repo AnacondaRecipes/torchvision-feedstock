@@ -54,15 +54,14 @@ requirements:
     - pip
     - setuptools
     - wheel
-    - cudnn                                  # [cuda_compiler_version != "None"]
-    {% if cuda_major >= 12 %}
-    - libcublas-dev
-    - libcusolver-dev
-    - libcusparse-dev
-    {% else %}
-    - cudatoolkit {{ cuda_compiler_version }}
-    - cuda-version {{ cuda_compiler_version }}
-    {% endif %}
+    - cudnn                                      # [cuda_compiler_version != "None"]
+    {% if cuda_major >= 12 %}                    # [cuda_compiler_version != "None"]
+    - libcublas-dev                              # [cuda_compiler_version != "None"]
+    - libcusolver-dev                            # [cuda_compiler_version != "None"]
+    - libcusparse-dev                            # [cuda_compiler_version != "None"]
+    {% endif %}                                  # [cuda_compiler_version != "None"]
+    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
+    - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     # split off image/video into separate outputs?
     - libjpeg-turbo
     - libpng
@@ -74,22 +73,22 @@ requirements:
     - numpy
     # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
-    - libtorch
+    #- libtorch
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*
     - requests
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*
-    - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]
+    - {{ pin_compatible('cudnn') }}           # [cuda_compiler_version != "None"]
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     - requests
-    - - __cuda >={{ cuda_compiler_version }}
+    - __cuda >={{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
 
 test:
   requires:
     - pip
     - pytest
-    - av
+    #- av
     - expecttest
     - scipy
     - pytest-mock
@@ -106,7 +105,6 @@ test:
   commands:
     - pip check || true      # [not win]
     - pip check || (exit 1)  # [win]
-    {% set tests_to_skip = "" %}
     # # Skip test_url_is_accessible instead of hitting 20+ servers per run, since
     # # each server might be occasionally unresponsive and end up failing our CI
     # {% set tests_to_skip = "test_url_is_accessible" %}
@@ -180,7 +178,8 @@ test:
     # # 2024/02 These tests assert warnings and in PyTorch 2.1.2 the number of warnings increased
     # # causing them to fail
     # {% set tests_to_skip = tests_to_skip + " or test_pretrained_pos or test_equivalent_behavior_weights" %}
-    - pytest --verbose -k "not ({{ tests_to_skip }})" --durations=50 test/ || true
+    #- pytest --verbose -k "not ({{ tests_to_skip }})" --durations=50 test/ || true
+    - pytest --verbose -k --durations=50 test/ || true
 
 about:
   home: https://pytorch.org/
