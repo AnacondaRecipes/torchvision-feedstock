@@ -34,6 +34,9 @@ build:
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [cuda_compiler_version != "None" and aarch64]
   missing_dso_whitelist:
+    - "**/libc10.so"              # [linux]
+    - "**/libtorch_cpu.so"        # [linux]
+    - "**/ld64.so.1"              # [s390x]
     - "**/libc10.dylib"           # [osx]
     - "**/libtorch_cpu.dylib"     # [osx]
 
