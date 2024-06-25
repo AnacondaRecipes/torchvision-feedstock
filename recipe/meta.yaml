@@ -1,4 +1,4 @@
-{% set version = "0.18.1" %}
+{% set version = "0.18.0" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
@@ -19,7 +19,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516
+  sha256: 3e61cbac33986a862a59cd733fd65da8b2c2a6160a66556cfa0e850f62fd43c7
   patches:
     # seems to be necessary for aarch???
     - patches/0001-Monkeypatch-TORCH_LIB_PATH.patch
@@ -29,7 +29,7 @@ source:
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
-  number: 1
+  number: 0
   #skip: true  # [win]
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [cuda_compiler_version != "None" and aarch64]
@@ -185,7 +185,7 @@ test:
     # # causing them to fail
     # {% set tests_to_skip = tests_to_skip + " or test_pretrained_pos or test_equivalent_behavior_weights" %}
     #- pytest --verbose -k "not ({{ tests_to_skip }})" --durations=50 test/ || true
-    - pytest --verbose -k --durations=50 test/ || true
+    - pytest --verbose --durations=50 test/ || true
 
 about:
   home: https://pytorch.org/
