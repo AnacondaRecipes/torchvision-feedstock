@@ -112,6 +112,7 @@ test:
   commands:
     - pip check || true      # [not win]
     - pip check || (exit 1)  # [win]
+    {% set tests_to_skip = "" %}
     # # Skip test_url_is_accessible instead of hitting 20+ servers per run, since
     # # each server might be occasionally unresponsive and end up failing our CI
     # {% set tests_to_skip = "test_url_is_accessible" %}
