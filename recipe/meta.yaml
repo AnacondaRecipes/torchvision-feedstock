@@ -112,7 +112,7 @@ test:
   commands:
     - pip check || true      # [not win]
     - pip check || (exit 1)  # [win]
-    {% set tests_to_skip = "" %}
+    {% set tests_to_skip = "test_detection_model" %}
     # # Skip test_url_is_accessible instead of hitting 20+ servers per run, since
     # # each server might be occasionally unresponsive and end up failing our CI
     # {% set tests_to_skip = "test_url_is_accessible" %}
@@ -169,7 +169,7 @@ test:
     # {% set tests_to_skip = tests_to_skip + " or test_vitc_models" %}
     # {% set tests_to_skip = tests_to_skip + " or test_classification_model" %}
     # {% set tests_to_skip = tests_to_skip + " or test_segmentation_model" %}
-    {% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
+    # {% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
     # {% set tests_to_skip = tests_to_skip + " or test_detection_model_validation" %}
     # {% set tests_to_skip = tests_to_skip + " or test_video_model" %}
     {% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}               # [linux]
