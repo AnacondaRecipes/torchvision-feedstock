@@ -1,0 +1,19 @@
+Using libjpeg-turbo here would require that we update the whole distro to use
+libjpeg-turbo, because currently we depend on libjpeg v9 throughout, whereas
+libjpeg-turbo is abi compatible with v8 only.
+
+See more info here:
+https://github.com/conda-forge/conda-forge.github.io/issues/673
+
+Index: vision/test/smoke_test.py
+===================================================================
+--- vision.orig/test/smoke_test.py	2024-07-03 17:01:28.517800040 -0500
++++ vision/test/smoke_test.py	2024-07-03 17:04:54.675116923 -0500
+@@ -81,7 +81,6 @@
+     version = ".".join(torchvision.__version__.split(".")[:2])
+     if version >= "0.16":
+         print(f"{torch.ops.image._jpeg_version() = }")
+-        assert torch.ops.image._is_compiled_against_turbo()
+ 
+     smoke_test_torchvision()
+     smoke_test_torchvision_read_decode()

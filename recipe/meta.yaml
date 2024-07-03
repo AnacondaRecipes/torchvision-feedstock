@@ -25,6 +25,7 @@ source:
     - patches/0001-Monkeypatch-TORCH_LIB_PATH.patch
     # backport https://github.com/pytorch/vision/pull/8463 for numpy 2.0 compat
     - patches/0002-Make-adjust_hue-work-with-numpy-2.0-8463.patch
+    - patches/0003-0003-dont-test-for-turbo-jpeg.patch
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
@@ -71,7 +72,7 @@ requirements:
     - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     # split off image/video into separate outputs?
-    - libjpeg-turbo
+    - jpeg {{ jpeg }}
     - libpng {{ libpng }}
     - ffmpeg
     - numpy
