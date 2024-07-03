@@ -71,7 +71,7 @@ requirements:
     - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     # split off image/video into separate outputs?
-    - jpeg {{ jpeg }}
+    - libjpeg-turbo
     - libpng {{ libpng }}
     - ffmpeg
     - numpy
