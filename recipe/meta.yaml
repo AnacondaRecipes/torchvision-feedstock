@@ -98,6 +98,7 @@ test:
     - pytest-mock
   source_files:
     - test
+    - gallery
   imports:
     - torchvision
     - torchvision.datasets
