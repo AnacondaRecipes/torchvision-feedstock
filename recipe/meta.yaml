@@ -34,6 +34,8 @@ build:
   skip: true  # [s390x]
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [cuda_compiler_version != "None" and aarch64]
+  # pytorch 2.3 cuda not supported for python 3.12
+  skip: true  # [cuda_compiler_version != "None" and compatible_pytorch==2.3 and py==312]
   missing_dso_whitelist:
     - "**/libc10.so"              # [linux]
     - "**/libtorch_cpu.so"        # [linux]
@@ -79,11 +81,11 @@ requirements:
     # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     #- libtorch
-    - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*
+    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - requests
   run:
     - python
-    - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*
+    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - {{ pin_compatible('cudnn') }}           # [cuda_compiler_version != "None"]
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     - requests
