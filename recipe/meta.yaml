@@ -35,7 +35,7 @@ build:
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [cuda_compiler_version != "None" and aarch64]
   # pytorch 2.3 cuda not supported for python 3.12
-  skip: true  # [cuda_compiler_version != "None" and compatible_pytorch==2.3 and py==312]
+  skip: true  # [(cuda_compiler_version != "None") and (compatible_pytorch == "2.3") and (py==312)]
   missing_dso_whitelist:
     - "**/libc10.so"              # [linux]
     - "**/libtorch_cpu.so"        # [linux]
