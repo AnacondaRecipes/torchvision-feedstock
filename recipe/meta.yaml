@@ -73,7 +73,7 @@ requirements:
     - libcusolver-dev                            # [cuda_compiler_version != "None"]
     - libcusparse-dev                            # [cuda_compiler_version != "None"]
     {% endif %}                                  # [cuda_compiler_version != "None"]
-    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version==11.8]
+    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
@@ -89,7 +89,7 @@ requirements:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - {{ pin_compatible('cudnn') }}           # [cuda_compiler_version != "None"]
-    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version==11.8]
+    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     - requests
