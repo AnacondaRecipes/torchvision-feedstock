@@ -1,4 +1,4 @@
-{% set version = "0.18.0" %}
+{% set version = "0.18.1" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
@@ -19,7 +19,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 3e61cbac33986a862a59cd733fd65da8b2c2a6160a66556cfa0e850f62fd43c7
+  sha256: 347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516
   patches:
     # seems to be necessary for aarch???
     - patches/0001-Monkeypatch-TORCH_LIB_PATH.patch
@@ -78,19 +78,17 @@ requirements:
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
-    - ffmpeg
+    - ffmpeg 6.1.1
     - numpy
-    # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
-    - pillow >=5.3.0,!=8.3.0,!=8.3.1
     #- libtorch
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - requests
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - {{ pin_compatible('cudnn') }}           # [cuda_compiler_version != "None"]
     - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
+    # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     - requests
     - __cuda >={{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
@@ -105,6 +103,7 @@ test:
   source_files:
     - test
     - gallery
+    - pytest.ini
   imports:
     - torchvision
     - torchvision.datasets
@@ -114,8 +113,16 @@ test:
   commands:
     - pip check
     - python test/smoke_test.py
-    # Vast majority of tests pass. Failures can be seen in logs. Tests crash on Windows due to a memoryerror.
-    - pytest --verbose --durations=50 test/ || true    # [not win]
+    # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
+    # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
+    {% set tests_to_skip = "test_internet" %}
+    # Detection models are flaky: https://github.com/pytorch/vision/blob/c2619ba5316a50b6ecb01a9c51d78d2782cfb2dd/test/test_models.py#L845
+    {% set tests_to_skip = tests_to_skip + "test_detection_model" %}
+    # This is failing on linux-64. The quantized models are expected to be more flaky than unquantized ones: https://github.com/pytorch/vision/issues/4683#issuecomment-948476191
+    {% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}  # [linux]
+
+    # Tests crash on Windows due to a memoryerror. (reduce tests more?)
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/ || true
 
 about:
   home: https://pytorch.org/
