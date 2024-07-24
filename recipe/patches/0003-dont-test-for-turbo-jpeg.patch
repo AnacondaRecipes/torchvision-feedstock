@@ -1,4 +1,4 @@
-Using libjpeg-turbo here would require that we update the whole distro to use
+Using libjpeg-turbo here would require that we update defaults to use
 libjpeg-turbo, because currently we depend on libjpeg v9 throughout, whereas
 libjpeg-turbo is abi compatible with v8 only.
 
