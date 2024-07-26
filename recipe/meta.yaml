@@ -22,7 +22,7 @@ source:
   sha256: 347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516
   patches:
     # seems to be necessary for aarch???
-    - patches/0001-Monkeypatch-TORCH_LIB_PATH.patch
+    #- patches/0001-Monkeypatch-TORCH_LIB_PATH.patch
     # backport https://github.com/pytorch/vision/pull/8463 for numpy 2.0 compat
     #- patches/0002-Make-adjust_hue-work-with-numpy-2.0-8463.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
@@ -67,7 +67,7 @@ requirements:
     - pip
     - setuptools
     - wheel
-    - cudnn                                      # [cuda_compiler_version != "None"]
+    - cudnn  8.9.2.26                            # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}                    # [cuda_compiler_version != "None"]
     - libcublas-dev                              # [cuda_compiler_version != "None"]
     - libcusolver-dev                            # [cuda_compiler_version != "None"]
@@ -86,7 +86,7 @@ requirements:
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - {{ pin_compatible('cudnn') }}           # [cuda_compiler_version != "None"]
+    - {{ pin_compatible('cudnn') }}              # [cuda_compiler_version != "None"]
     - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
