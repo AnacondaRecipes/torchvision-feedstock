@@ -67,7 +67,6 @@ requirements:
     - pip
     - setuptools
     - wheel
-    - cudnn  8.9.2.26                            # [cuda_compiler_version != "None"]
     {% if cuda_major >= 12 %}                    # [cuda_compiler_version != "None"]
     - libcublas-dev                              # [cuda_compiler_version != "None"]
     - libcusolver-dev                            # [cuda_compiler_version != "None"]
@@ -86,7 +85,6 @@ requirements:
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - {{ pin_compatible('cudnn') }}              # [cuda_compiler_version != "None"]
     - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
     - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
     # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
