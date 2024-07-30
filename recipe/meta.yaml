@@ -124,8 +124,8 @@ test:
     # with the same tests with different parameters passing.
     # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
     {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
-    # These tests hang on linux
-    {% set tests_to_skip = tests_to_skip + " or test_video_reader" %}  # [linux]
+    # These tests run ok on most platforms but exhaust the memory on linux
+    {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [linux]
 
     - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/
 
