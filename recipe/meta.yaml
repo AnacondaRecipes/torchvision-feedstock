@@ -21,10 +21,6 @@ source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
   sha256: 347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516
   patches:
-    # seems to be necessary for aarch???
-    #- patches/0001-Monkeypatch-TORCH_LIB_PATH.patch
-    # backport https://github.com/pytorch/vision/pull/8463 for numpy 2.0 compat
-    #- patches/0002-Make-adjust_hue-work-with-numpy-2.0-8463.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
 
 build:
@@ -112,6 +108,7 @@ test:
   commands:
     - pip check
     - python test/smoke_test.py
+
     # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
     # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
     {% set tests_to_skip = "test_internet" %}
@@ -126,8 +123,22 @@ test:
     {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
     # These tests run ok on most platforms but exhaust the memory on linux
     {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [linux]
+    # These give "Windows fatal exception: access violation" on our CI build machines, probably due to memory exhaustion.
+    # They run successfully on a more powerful machine.
+    # Specifically (below is reproducible):
+    # test/test_backbone_utils.py::TestFxFeatureExtraction::test_jit_forward_backward[convnext_base] - python 3.11
+    # test/test_models.py::test_detection_model[cpu-keypointrcnn_resnet50_fpn] - python 3.9
+    # test/test_backbone_utils.py::TestFxFeatureExtraction::test_forward_backward[vit_l_32] - python 3.8 and 3.12
+    {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [win]
 
-    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/
+    # These are the suggetions from upstream for a set of tests that gives good coverage without running into out of memory issues.
+    # They told us the heavy part is probably the models.
+    # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
+    # so they're all kept in for reference.
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
 
 about:
   home: https://pytorch.org/
