@@ -1,119 +1,144 @@
-{% set version = "0.15.2" %}
+{% set version = "0.18.1" %}
+# see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
+# torchvision requires that CUDA major and minor versions match with pytorch
+# https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
+{% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if cuda_compiler_version != "None" else "cpu" %}
+# Upstream has specific compatability ranges for pytorch and python which are
+# updated every 0.x release. https://github.com/pytorch/vision#installation
+{% set compatible_pytorch = "2.3" %}
+
+{% if cuda_compiler_version in (None, "None", True, False) %}
+{% set cuda_major = 0 %}
+{% else %}
+{% set cuda_major = environ.get("cuda_compiler_version", "11.2").split(".")[0] | int %}
+{% endif %}
 
 package:
   name: torchvision
   version: {{ version }}
 
 source:
-  url: https://github.com/pytorch/vision/archive/v{{ version }}.tar.gz
-  sha256: 1efcb80e0a6e42c54f07ee16167839b4d302aeeecc12839cc47c74b06a2c20d4
+  url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
+  sha256: 347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516
+  patches:
+    - patches/0003-dont-test-for-turbo-jpeg.patch
 
 build:
+  string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
+  string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
   number: 0
-  skip: True  # [py<37 or s390x or ppc64le]
-  string: cuda{{ cudatoolkit | replace('.', '') }}py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}  # [pytorch_variant == "gpu"]
-  string: cpu_py{{ CONDA_PY }}h{{PKG_HASH}}_{{ PKG_BUILDNUM }}                                      # [pytorch_variant == "cpu"]
-  script:
-    - export NVCC_FLAGS="-ccbin ${CC}"  # [not win]
-    - set FORCE_CUDA=0  # [win and (pytorch_variant != "gpu")]
-    - export FORCE_CUDA=0  # [not win and (pytorch_variant != "gpu")]
-    - LDFLAGS="${LDFLAGS//-Wl,-z,now/-Wl,-z,lazy}"    # [not win]
-    - set "TORCHVISION_INCLUDE=%LIBRARY_INC%"         # [win]
-    - export TORCHVISION_INCLUDE="${PREFIX}/include"  # [not win]
-    - "{{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation"
+  skip: true  # [s390x]
+  # no CUDA-enabled pytorch on aarch yet
+  skip: true  # [cuda_compiler_version != "None" and aarch64]
+  # pytorch 2.3 cuda not supported for python 3.12
+  skip: true  # [(cuda_compiler_version != "None") and (py==312)]
   missing_dso_whitelist:
-    - "$RPATH/libc10.so"           # [linux]
-    - "$RPATH/libc10.dylib"        # [osx]
-    - "$RPATH/libtorch_cpu.so"     # [linux]
-    - "$RPATH/libtorch_cpu.dylib"  # [osx]
-    - "$RPATH/libc10.so"           # [linux]
-    - "$RPATH/libc10.dylib"        # [osx]
-    - "$RPATH/c10.dll"             # [win]
-    - "$RPATH/torch_cpu.dll"       # [win] 
+    - "**/libc10.so"              # [linux]
+    - "**/libtorch_cpu.so"        # [linux]
+    - "**/libc10_cuda.so"         # [cuda_compiler_version != "None" and linux]
+    - "**/libtorch_cuda.so"       # [cuda_compiler_version != "None" and linux]
+    - "**/ld64.so.1"              # [s390x]
+    - "**/libc10.dylib"           # [osx]
+    - "**/libtorch_cpu.dylib"     # [osx]
+    - "**/c10.dll"                # [win]
+    - "**/torch_cpu.dll"          # [win]
 
 requirements:
   build:
+    #- {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    # libpng and libjpeg must be available at compilation time in order to be available,
-    # see https://github.com/pytorch/vision/tree/v0.11.3#image-backend
-    - jpeg      # [not win]
-    - libpng
+    {% if cuda_major >= 12 %}
+    - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
+    - libcublas-dev                          # [build_platform != target_platform]
+    - libcusolver-dev                        # [build_platform != target_platform]
+    - libcusparse-dev                        # [build_platform != target_platform]
+    {% endif %}
+    - python                                 # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - numpy                                  # [build_platform != target_platform]
+    - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*  # [build_platform != target_platform]
   host:
     - python
     - pip
-    - wheel
-    - numpy {{ numpy }}
-    - pytorch 2.0.1
-    # libpng and libjpeg must be available at compilation time
-    - jpeg {{ jpeg }}  # [not win]
-    - libpng {{ libpng }}
-    # GPU requirements
-    - cudatoolkit {{ cudatoolkit }}  # [pytorch_variant == "gpu"]
-    # 2022/08/25: Not requiring ffmpeg because torchvision has bugs with certain ffmpeg versions, 
-    # see https://github.com/pytorch/vision/issues/5419#issuecomment-1193483864
-    # and https://github.com/conda-forge/torchvision-feedstock/commit/4ec4b5f4eb4889dbb1f8da34662ea622bb4b3828
-    # - ffmpeg
-  run:
-    # GPU requirements
-    - {{ pin_compatible('cudatoolkit', max_pin='x.x') }}  # [pytorch_variant == "gpu"]
-    - {{ pin_compatible('numpy') }}
-    - python
-    - pillow >=5.3.0,!=8.3.*
-    - pytorch
-    - requests
-    - jpeg  # [not win]
-    - libpng
     - setuptools
-    # - ffmpeg
-
-# Skip test_url_is_accessible instead of hitting 20+ servers per run, since
-# each server might be occasionally unresponsive and end up failing our CI
-{% set tests_to_skip = "test_url_is_accessible" %}
-
-# 2022/08/30: Skipping the av tests (they require module 'av'): ModuleNotFoundError: No module named 'av',
-# because the av package depends on ffmpeg, which we are not requiring as a run requirement because torchvision has bugs with certain ffmpeg versions.
-{% set tests_to_skip = tests_to_skip + " or test_classes or test_feature_types or test_feature_types or test_is_valid_file or test_num_examples or test_smoke or test_str_smoke or test_transforms" %}
-# 2022/08/30: This test seems to just destroy the memory of the system.
-# they actually run on most platform except but were still hanging on linux-aarch64 and osx-arm64
-{% set tests_to_skip = tests_to_skip + " or test_forward_backward" %}
-{% set tests_to_skip = tests_to_skip + " or test_jit_forward_backward" %}
-# 2023/07/06: CIs do not have enough resources to run the full suite of model tests
-# test_extended_models
-{% set tests_to_skip = tests_to_skip + " or test_get_model or test_get_model_builder or test_get_model_weights" %}
-{% set tests_to_skip = tests_to_skip + " or test_weights_copyable or test_weights_deserializable or test_list_models" %}
-{% set tests_to_skip = tests_to_skip + " or test_get_weight or test_naming_conventions or test_schema_meta_validation" %}
-# from now on something surely needs to be disabled
-{% set tests_to_skip = tests_to_skip + " or test_transforms_jit or test_no_warn or test_pretrained_pos" %}
-{% set tests_to_skip = tests_to_skip + " or test_pretrained_kw or test_equivalent_behavior_weights" %}
-{% set tests_to_skip = tests_to_skip + " or test_multi_params or test_default_callable or test_pretrained_deprecation" %}
-# test_models
-{% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
-{% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}  # [linux]
+    - wheel
+    {% if cuda_major >= 12 %}                    # [cuda_compiler_version != "None"]
+    - libcublas-dev                              # [cuda_compiler_version != "None"]
+    - libcusolver-dev                            # [cuda_compiler_version != "None"]
+    - libcusparse-dev                            # [cuda_compiler_version != "None"]
+    {% endif %}                                  # [cuda_compiler_version != "None"]
+    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
+    - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
+    # split off image/video into separate outputs?
+    - jpeg {{ jpeg }}
+    - libpng {{ libpng }}
+    # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/setup.py#L361
+    # ffmpeg is detected at buildtime in setup.py, so no build.sh/bld.bat additions required to handle this
+    - ffmpeg 6.1.1 # [linux and (py!=39)]
+    #- libtorch
+    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+  run:
+    - python
+    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
+    - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
+    # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
+    - pillow >=5.3.0,!=8.3.0,!=8.3.1
+    - numpy <2.0a0
+    - __cuda >={{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
 
 test:
+  requires:
+    - pip
+    - pytest <8
+    - expecttest
+    - scipy
+    - pytest-mock
+  source_files:
+    - test
+    - gallery
+    - pytest.ini
   imports:
     - torchvision
     - torchvision.datasets
     - torchvision.transforms
     - torchvision.models
     - torchvision.utils
-  source_files:
-    - test
-    - references
-  requires:
-    - pip
-    - pytest
-    - pytest-mock
-    - scipy
-    # For pkg_resources
-    - setuptools
   commands:
-    - pip check || true      # [not win]
-    - pip check || (exit 1)  # [win]
-    - pytest -v -k "not ({{ tests_to_skip }})" test/  # [(osx and arm64)]
-    - pytest -v -k "not ({{ tests_to_skip }} or test_frozenbatchnorm2d_eps)" test/  # [linux and aarch64]
-    - pytest -v -k "not ({{ tests_to_skip }} or test_maskrcnn_resnet50_fpn_cpu)" test/  # [linux and (not aarch64)]
+    - pip check
+    - python test/smoke_test.py
+
+    # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
+    # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
+    {% set tests_to_skip = "test_internet" %}
+    # Detection models are flaky: https://github.com/pytorch/vision/blob/c2619ba5316a50b6ecb01a9c51d78d2782cfb2dd/test/test_models.py#L845
+    {% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
+    # This is failing on linux-64. The quantized models are expected to be more flaky than unquantized ones: https://github.com/pytorch/vision/issues/4683#issuecomment-948476191
+    {% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}  # [linux]
+    # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
+    # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
+    # with the same tests with different parameters passing.
+    # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
+    {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
+    # These tests run ok on most platforms but exhaust the memory on linux
+    {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [linux]
+    # These give "Windows fatal exception: access violation" on our CI build machines, probably due to memory exhaustion.
+    # They run successfully on a more powerful machine.
+    # Specifically (below is reproducible):
+    # test/test_backbone_utils.py::TestFxFeatureExtraction::test_jit_forward_backward[convnext_base] - python 3.11
+    # test/test_models.py::test_detection_model[cpu-keypointrcnn_resnet50_fpn] - python 3.9
+    # test/test_backbone_utils.py::TestFxFeatureExtraction::test_forward_backward[vit_l_32] - python 3.8 and 3.12
+    {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [win]
+
+    # These are the suggetions from upstream for a set of tests that gives good coverage without running into out of memory issues.
+    # They told us the heavy part is probably the models.
+    # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
+    # so they're all kept in for reference.
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
+    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
 
 about:
   home: https://pytorch.org/
@@ -131,5 +156,7 @@ extra:
     - katietz
     - jjhelmus
     - nehaljwani
+    - hmaarrfk
+    - h-vetinari
   skip-lints:
     - python_build_tool_in_run
