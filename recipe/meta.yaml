@@ -118,6 +118,7 @@ outputs:
     test:
       requires:
         - pytest
+        - pytest-socket
         - requests
         - expecttest
         - scipy
@@ -125,12 +126,26 @@ outputs:
         - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
+        - gallery
         - references
         - pytest.ini
       commands:
+        # The ops tests give a lot of these errors due to ops that aren't implemented on MPS:
+        # https://github.com/pytorch/pytorch/blob/a8d6afb511a69687bbb2b7e88a3cf67917e1697e/aten/src/ATen/mps/MPSFallback.mm#L45
+        # See also https://github.com/pytorch/pytorch/issues/77764
+        # This is the recommended approach; users will see the same errors and will have to set the same env variable
+        - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
         - python test/smoke_test.py
-        {% set tests_to_skip = "" %}
-        # # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
+        {% set tests_to_skip = "_not_a_real_test" %}
+        # These tests use internet
+        {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
+        # These are expected to give an error message "MPS does not support <some_op>", but they don't because we've got MPS fallback enabled
+        {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
+        # These give marginal maths error messages; the others in their set pass
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-1] or test_backward[False-True-mps-7] or test_backward[False-True-mps-8]" %}       # [osx and arm64]
+        # The NMS kernel doesn't support float16 on MPS
+        {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
+        # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
         # # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
         # {% set tests_to_skip = "test_internet" %}
         # # Detection models are flaky: https://github.com/pytorch/vision/blob/c2619ba5316a50b6ecb01a9c51d78d2782cfb2dd/test/test_models.py#L845
@@ -152,7 +167,7 @@ outputs:
         # # test/test_backbone_utils.py::TestFxFeatureExtraction::test_forward_backward[vit_l_32] - python 3.8 and 3.12
         # {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [win]
 
-        # These are the suggetions from upstream for a set of tests that gives good coverage without running into out of memory issues.
+        # These are the suggetions from a pytorch maintainer for a set of tests that gives good coverage without running into out of memory issues.
         # They told us the heavy part is probably the models.
         # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
         # so they're all kept in for reference.
