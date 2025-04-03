@@ -84,11 +84,13 @@ requirements:
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
     - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    - pybind11
     - requests
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - {{ pin_compatible('cudnn') }}          # [cuda_compiler_version != "None"]
+    - pillow >=5.3.0,!=8.3.0,!=8.3.1
     # They don't really document it, but it seems that they want a minimum version
     # https://github.com/pytorch/vision/blob/v0.19.0/packaging/torchvision/meta.yaml#L26
     - numpy >=1.23.5
@@ -117,7 +119,6 @@ outputs:
       requires:
         - pytest
         - requests
-        - av
         - expecttest
         - scipy
         - pytest-mock

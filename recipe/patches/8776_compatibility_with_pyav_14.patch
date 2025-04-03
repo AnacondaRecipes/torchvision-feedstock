@@ -7,11 +7,22 @@ Subject: [PATCH 1/2] Fix pyav 14 error
  torchvision/io/video.py | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/torchvision/io/video.py b/torchvision/io/video.py
-index 9f768ed555d..d81b846c12f 100644
---- a/torchvision/io/video.py
-+++ b/torchvision/io/video.py
-@@ -155,7 +155,13 @@ def write_video(
+Index: vision-0.20.1/torchvision/io/video.py
+===================================================================
+--- vision-0.20.1.orig/torchvision/io/video.py	2024-10-23 07:01:28.000000000 -0500
++++ vision-0.20.1/torchvision/io/video.py	2025-03-24 17:14:43.680884262 -0500
+@@ -26,6 +26,10 @@
+ install PyAV on your system.
+ """
+         )
++    try:
++        FFmpegError = av.FFmpegError  # from av 14 https://github.com/PyAV-Org/PyAV/blob/main/CHANGELOG.rst
++    except AttributeError:
++        FFmpegError = av.AVError
+ except ImportError:
+     av = ImportError(
+         """\
+@@ -137,7 +141,13 @@
  
          for img in video_array:
              frame = av.VideoFrame.from_ndarray(img, format="rgb24")
@@ -26,32 +37,7 @@ index 9f768ed555d..d81b846c12f 100644
              for packet in stream.encode(frame):
                  container.mux(packet)
  
-
-From 0c0cb14e2e180af75b742b890de722a50363c60e Mon Sep 17 00:00:00 2001
-From: Nicolas Hug <contact@nicolas-hug.com>
-Date: Mon, 2 Dec 2024 16:43:58 +0000
-Subject: [PATCH 2/2] oenfljanefa
-
----
- torchvision/io/video.py | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/torchvision/io/video.py b/torchvision/io/video.py
-index d81b846c12f..2e3dbed65a2 100644
---- a/torchvision/io/video.py
-+++ b/torchvision/io/video.py
-@@ -26,6 +26,10 @@
- install PyAV on your system.
- """
-         )
-+    try:
-+        FFmpegError = av.FFmpegError  # from av 14 https://github.com/PyAV-Org/PyAV/blob/main/CHANGELOG.rst
-+    except AttributeError:
-+        FFmpegError = av.AVError
- except ImportError:
-     av = ImportError(
-         """\
-@@ -221,7 +225,7 @@ def _read_from_stream(
+@@ -197,7 +207,7 @@
      try:
          # TODO check if stream needs to always be the video stream here or not
          container.seek(seek_offset, any_frame=False, backward=True, stream=stream)
@@ -60,7 +46,7 @@ index d81b846c12f..2e3dbed65a2 100644
          # TODO add some warnings in this case
          # print("Corrupted file?", container.name)
          return []
-@@ -234,7 +238,7 @@ def _read_from_stream(
+@@ -210,7 +220,7 @@
                      buffer_count += 1
                      continue
                  break
@@ -69,7 +55,7 @@ index d81b846c12f..2e3dbed65a2 100644
          # TODO add a warning
          pass
      # ensure that the results are sorted wrt the pts
-@@ -356,7 +360,7 @@ def read_video(
+@@ -332,7 +342,7 @@
                      )
                      info["audio_fps"] = container.streams.audio[0].rate
  
@@ -78,7 +64,7 @@ index d81b846c12f..2e3dbed65a2 100644
              # TODO raise a warning?
              pass
  
-@@ -447,10 +451,10 @@ def read_video_timestamps(filename: str, pts_unit: str = "pts") -> Tuple[List[in
+@@ -423,10 +433,10 @@
                  video_time_base = video_stream.time_base
                  try:
                      pts = _decode_video_timestamps(container)
