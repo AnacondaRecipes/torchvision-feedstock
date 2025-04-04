@@ -15,12 +15,12 @@ source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
   sha256: 7e08c7f56e2c89859310e53d898f72bccc4987cd83e08cfd6303513da15a9e71
   patches:
-    - patches/0003-dont-test-for-turbo-jpeg.patch
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
-
     - patches/0002-Force-nvjpeg-and-force-failure.patch
-
+    - patches/0003-dont-test-for-turbo-jpeg.patch
+    # https://github.com/pytorch/vision/pull/8618
+    - patches/0004-Fix-adjust_hue-on-ARM.patch
     # Can likely remove after 0.20.1
     # https://github.com/pytorch/vision/pull/8776
     - patches/8776_compatibility_with_pyav_14.patch

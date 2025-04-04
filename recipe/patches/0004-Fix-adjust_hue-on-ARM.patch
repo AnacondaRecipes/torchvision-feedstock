@@ -1,0 +1,22 @@
+From b6d16e63b3a23e6f1c1565b9fe2131c51a7d3748 Mon Sep 17 00:00:00 2001
+From: sclarkson <sc@lambdal.com>
+Date: Fri, 30 Aug 2024 15:01:01 -0700
+Subject: [PATCH] Use two step conversion from float to uint8 to reduce
+ platform dependence
+
+---
+ torchvision/transforms/_functional_pil.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/torchvision/transforms/_functional_pil.py b/torchvision/transforms/_functional_pil.py
+index 527879bb6f1..bd943b6ee10 100644
+--- a/torchvision/transforms/_functional_pil.py
++++ b/torchvision/transforms/_functional_pil.py
+@@ -110,7 +110,7 @@ def adjust_hue(img: Image.Image, hue_factor: float) -> Image.Image:
+ 
+     np_h = np.array(h, dtype=np.uint8)
+     # This will over/underflow, as desired
+-    np_h += np.array(hue_factor * 255).astype(np.uint8)
++    np_h += np.int32(hue_factor * 255).astype(np.uint8)
+ 
+     h = Image.fromarray(np_h, "L")

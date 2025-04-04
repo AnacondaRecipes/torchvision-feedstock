@@ -7,8 +7,8 @@ https://github.com/conda-forge/conda-forge.github.io/issues/673
 
 Index: vision/test/smoke_test.py
 ===================================================================
---- vision.orig/test/smoke_test.py	2025-04-03 16:11:22.019770207 -0500
-+++ vision/test/smoke_test.py	2025-04-03 16:13:24.305750130 -0500
+--- vision.orig/test/smoke_test.py	2025-04-04 10:16:05.718252000 -0500
++++ vision/test/smoke_test.py	2025-04-04 10:16:13.345066580 -0500
 @@ -85,7 +85,7 @@
      print(f"{torch.ops.image._jpeg_version() = }")
      if not torch.ops.image._is_compiled_against_turbo():
