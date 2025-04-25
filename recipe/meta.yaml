@@ -70,7 +70,8 @@ requirements:
     - libcublas-dev                              # [cuda_compiler_version != "None"]
     - libcusolver-dev                            # [cuda_compiler_version != "None"]
     - libcusparse-dev                            # [cuda_compiler_version != "None"]
-    - libnvjpeg-dev                          # [cuda_compiler_version != "None"]
+    - libnvjpeg-dev                              # [cuda_compiler_version != "None"]
+    - cuda-cudart-dev                            # [cuda_compiler_version != "None"]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
