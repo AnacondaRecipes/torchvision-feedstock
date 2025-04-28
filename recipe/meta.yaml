@@ -155,11 +155,11 @@ outputs:
         # {% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
         # # This is failing on linux-64. The quantized models are expected to be more flaky than unquantized ones: https://github.com/pytorch/vision/issues/4683#issuecomment-948476191
         # {% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}  # [linux]
-        # # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
-        # # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
-        # # with the same tests with different parameters passing.
-        # # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
-        # {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
+        # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
+        # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
+        # with the same tests with different parameters passing.
+        # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
+        {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
         # # These tests run ok on most platforms but exhaust the memory on linux
         # {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [linux]
         # # These give "Windows fatal exception: access violation" on our CI build machines, probably due to memory exhaustion.
@@ -174,10 +174,10 @@ outputs:
         # They told us the heavy part is probably the models.
         # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
         # so they're all kept in for reference.
-        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py || true
-        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py || true
-        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py || true
-        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py || true
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
 
 about:
   home: https://pytorch.org/
