@@ -24,6 +24,7 @@ source:
     # Can likely remove after 0.20.1
     # https://github.com/pytorch/vision/pull/8776
     - patches/8776_compatibility_with_pyav_14.patch
+    - patches/0005-use-correct-encode-jpeg-test-dir.patch
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
