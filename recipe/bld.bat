@@ -1,6 +1,6 @@
 @echo On
 
-if "%cuda_compiler_version%" == "None" (
+if "%gpu_variant%" != "cuda" (
   set FORCE_CUDA=0
 ) else (
   set FORCE_CUDA=1
