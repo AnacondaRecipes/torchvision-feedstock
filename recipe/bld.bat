@@ -1,6 +1,6 @@
 @echo On
 
-if "%gpu_variant%" != "cuda" (
+if "%gpu_variant%" neq "cuda" (
   set FORCE_CUDA=0
 ) else (
   set FORCE_CUDA=1
