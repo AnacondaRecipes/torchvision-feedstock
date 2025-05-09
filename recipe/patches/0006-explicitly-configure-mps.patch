@@ -1,0 +1,20 @@
+From: danpetry <dpetry@anaconda.com>
+
+This makes sure mps is available on the platform before building with it; and
+makes sure it's not implicitly built if the platform supports it.
+
+Index: vision/setup.py
+===================================================================
+--- vision.orig/setup.py	2025-04-30 16:09:43.571766832 -0500
++++ vision/setup.py	2025-05-01 14:10:45.659514389 -0500
+@@ -183,7 +183,9 @@
+         sources += cuda_sources
+     else:
+         Extension = CppExtension
+-        if torch.backends.mps.is_available() or FORCE_MPS:
++        if FORCE_MPS:
++            if not torch.backends.mps.is_available():
++                raise RuntimeError("MPS build configured, but MPS is not available")
+             sources += mps_sources
+ 
+     define_macros, extra_compile_args = get_macros_and_flags()

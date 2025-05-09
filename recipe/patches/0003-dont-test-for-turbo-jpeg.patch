@@ -7,13 +7,14 @@ https://github.com/conda-forge/conda-forge.github.io/issues/673
 
 Index: vision/test/smoke_test.py
 ===================================================================
---- vision.orig/test/smoke_test.py	2024-07-03 17:01:28.517800040 -0500
-+++ vision/test/smoke_test.py	2024-07-03 17:04:54.675116923 -0500
-@@ -81,7 +81,6 @@
-     version = ".".join(torchvision.__version__.split(".")[:2])
-     if version >= "0.16":
-         print(f"{torch.ops.image._jpeg_version() = }")
--        assert torch.ops.image._is_compiled_against_turbo()
- 
-     smoke_test_torchvision()
-     smoke_test_torchvision_read_decode()
+--- vision.orig/test/smoke_test.py	2025-04-04 10:16:05.718252000 -0500
++++ vision/test/smoke_test.py	2025-04-04 10:16:13.345066580 -0500
+@@ -85,7 +85,7 @@
+     print(f"{torch.ops.image._jpeg_version() = }")
+     if not torch.ops.image._is_compiled_against_turbo():
+         msg = "Torchvision wasn't compiled against libjpeg-turbo"
+-        if os.getenv("IS_M1_CONDA_BUILD_JOB") == "1":
++        if True:
+             # When building the conda package on M1, it's difficult to enforce
+             # that we build against turbo due to interactions with the libwebp
+             # package. So we just accept it, instead of raising an error.

@@ -1,0 +1,21 @@
+From: danpetry <dpetry@anaconda.com>
+
+This test fails because there are greyscale images in IMAGE_ROOT, and
+torchvision currently assumes RGB images when encoding using nvjpeg:
+https://github.com/pytorch/vision/blob/3ac97aa9120137381ed1060f37237e44485ac2aa/torchvision/csrc/io/image/cuda/encode_jpegs_cuda.cpp#L218
+
+Other similar tests like test_encode_jpeg use the ENCODE_JPEG directory too.
+
+Index: vision/test/test_image.py
+===================================================================
+--- vision.orig/test/test_image.py	2025-04-04 10:15:11.984803336 -0500
++++ vision/test/test_image.py	2025-04-30 16:10:55.960748577 -0500
+@@ -585,7 +585,7 @@
+ 
+ @needs_cuda
+ def test_encode_jpeg_cuda_device_param():
+-    path = next(path for path in get_images(IMAGE_ROOT, ".jpg") if "cmyk" not in path)
++    path = next(path for path in get_images(ENCODE_JPEG, ".jpg") if "cmyk" not in path)
+ 
+     data = read_image(path)
+ 

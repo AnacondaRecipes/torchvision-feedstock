@@ -1,16 +1,18 @@
-{% set version = "0.18.1" %}
+{% set version = "0.20.1" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
-{% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if cuda_compiler_version != "None" else "cpu" %}
+{% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.3" %}
+{% set compatible_pytorch = "2.5" %}
 
-{% if cuda_compiler_version in (None, "None", True, False) %}
-{% set cuda_major = 0 %}
-{% else %}
-{% set cuda_major = environ.get("cuda_compiler_version", "11.2").split(".")[0] | int %}
+{% set build = 2 %}
+# Use a higher build number for the GPU variants, to ensure that they're
+# preferred by conda's solver, and they're preferentially
+# installed where the platform supports it.
+{% if gpu_variant != "cpu" %}
+{% set build = build + 100 %}
 {% endif %}
 
 package:
@@ -19,126 +21,152 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 347d472a9ceecc44e0bee1eda140d63cfaffc74a54ec07d4b98da7698ce75516
+  sha256: 7e08c7f56e2c89859310e53d898f72bccc4987cd83e08cfd6303513da15a9e71
   patches:
+    # https://github.com/pytorch/vision/pull/8406/files#r1730151047
+    - patches/0001-Use-system-giflib.patch
+    - patches/0002-Force-nvjpeg-and-force-failure.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
+    # https://github.com/pytorch/vision/pull/8618
+    - patches/0004-Fix-adjust_hue-on-ARM.patch
+    - patches/0005-use-correct-encode-jpeg-test-dir.patch
+    - patches/0006-explicitly-configure-mps.patch
 
 build:
-  string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version == "None"]
-  string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
-  number: 0
+  string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
+  string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
+  string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
+  number: {{ build }}
+  script_env:
+    # required by the setup.py script to find the right version in 0.20.1
+    - BUILD_VERSION={{ version }}
   skip: true  # [s390x]
   # no CUDA-enabled pytorch on aarch yet
-  skip: true  # [cuda_compiler_version != "None" and aarch64]
-  # pytorch 2.3 cuda not supported for python 3.12
-  skip: true  # [(cuda_compiler_version != "None") and (py==312)]
-  missing_dso_whitelist:
-    - "**/libc10.so"              # [linux]
-    - "**/libtorch_cpu.so"        # [linux]
-    - "**/libc10_cuda.so"         # [cuda_compiler_version != "None" and linux]
-    - "**/libtorch_cuda.so"       # [cuda_compiler_version != "None" and linux]
-    - "**/ld64.so.1"              # [s390x]
-    - "**/libc10.dylib"           # [osx]
-    - "**/libtorch_cpu.dylib"     # [osx]
-    - "**/c10.dll"                # [win]
-    - "**/torch_cpu.dll"          # [win]
+  skip: true  # [gpu_variant == "cuda" and aarch64]
+  # Python 3.13 support will be introduced in v 0.21, see here https://github.com/pytorch/vision/issues/8730#issuecomment-2504291914
+  skip: true  # [py>=313]
 
 requirements:
   build:
-    #- {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    {% if cuda_major >= 12 %}
-    - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
-    - libcublas-dev                          # [build_platform != target_platform]
-    - libcusolver-dev                        # [build_platform != target_platform]
-    - libcusparse-dev                        # [build_platform != target_platform]
-    {% endif %}
+    - {{ compiler('cuda') }}                 # [gpu_variant == "cuda"]
+    - libcublas-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libcusolver-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libcusparse-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libnvjpeg-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
     - python                                 # [build_platform != target_platform]
     - cross-python_{{ target_platform }}     # [build_platform != target_platform]
-    - numpy                                  # [build_platform != target_platform]
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*  # [build_platform != target_platform]
   host:
     - python
     - pip
     - setuptools
     - wheel
-    {% if cuda_major >= 12 %}                    # [cuda_compiler_version != "None"]
-    - libcublas-dev                              # [cuda_compiler_version != "None"]
-    - libcusolver-dev                            # [cuda_compiler_version != "None"]
-    - libcusparse-dev                            # [cuda_compiler_version != "None"]
-    {% endif %}                                  # [cuda_compiler_version != "None"]
-    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
-    - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
+    - cudnn                                      # [gpu_variant == "cuda"]
+    - libcublas-dev                              # [gpu_variant == "cuda"]
+    - libcusolver-dev                            # [gpu_variant == "cuda"]
+    - libcusparse-dev                            # [gpu_variant == "cuda"]
+    - libnvjpeg-dev                              # [gpu_variant == "cuda"]
+    - cuda-cudart-dev                            # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
-    # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/setup.py#L361
+    - libwebp {{ libwebp }}
+    # https://github.com/pytorch/vision/pull/8406/files#r1730151047
+    - giflib
+    # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/v0.20.1/setup.py#L371
     # ffmpeg is detected at buildtime in setup.py, so no build.sh/bld.bat additions required to handle this
     - ffmpeg 6.1.1 # [linux and (py!=39)]
-    #- libtorch
+    # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
+    - pillow >=5.3.0,!=8.3.0,!=8.3.1
+    - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    - pybind11
+    - requests
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - cudatoolkit {{ cuda_compiler_version }}    # [cuda_compiler_version == "11.8"]
-    - cuda-version {{ cuda_compiler_version }}   # [cuda_compiler_version != "None"]
-    # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
+    - {{ pin_compatible('cudnn') }}          # [gpu_variant == "cuda"]
     - pillow >=5.3.0,!=8.3.0,!=8.3.1
-    - numpy <2.0a0
-    - __cuda >={{ cuda_compiler_version }}    # [cuda_compiler_version != "None"]
+    # They don't really document it, but it seems that they want a minimum version
+    # https://github.com/pytorch/vision/blob/v0.19.0/packaging/torchvision/meta.yaml#L26
+    - numpy >=1.23.5
+    - __cuda                                  # [gpu_variant == "cuda"]
+    # On macOS, the GPU accelerated backend, MPS, can be used from macOS v12.3. This isn't tightly dependent on the
+    # SDK version used.
+    - __osx >=12.3                            # [gpu_variant == "metal"]
 
 test:
   requires:
     - pip
-    - pytest <8
-    - expecttest
-    - scipy
-    - pytest-mock
-  source_files:
-    - test
-    - gallery
-    - pytest.ini
   imports:
     - torchvision
     - torchvision.datasets
-    - torchvision.transforms
     - torchvision.models
+    - torchvision.transforms
     - torchvision.utils
   commands:
+    # use pip list to manually check that the version is correctly reported
+    # Otherwise downstream package's pip check may fail
+    - pip list
+    - pip list | grep torchvision | grep {{ version }}         # [unix]
     - pip check
-    - python test/smoke_test.py
 
-    # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
-    # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
-    {% set tests_to_skip = "test_internet" %}
-    # Detection models are flaky: https://github.com/pytorch/vision/blob/c2619ba5316a50b6ecb01a9c51d78d2782cfb2dd/test/test_models.py#L845
-    {% set tests_to_skip = tests_to_skip + " or test_detection_model" %}
-    # This is failing on linux-64. The quantized models are expected to be more flaky than unquantized ones: https://github.com/pytorch/vision/issues/4683#issuecomment-948476191
-    {% set tests_to_skip = tests_to_skip + " or test_quantized_classification_model" %}  # [linux]
-    # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
-    # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
-    # with the same tests with different parameters passing.
-    # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
-    {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
-    # These tests run ok on most platforms but exhaust the memory on linux
-    {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [linux]
-    # These give "Windows fatal exception: access violation" on our CI build machines, probably due to memory exhaustion.
-    # They run successfully on a more powerful machine.
-    # Specifically (below is reproducible):
-    # test/test_backbone_utils.py::TestFxFeatureExtraction::test_jit_forward_backward[convnext_base] - python 3.11
-    # test/test_models.py::test_detection_model[cpu-keypointrcnn_resnet50_fpn] - python 3.9
-    # test/test_backbone_utils.py::TestFxFeatureExtraction::test_forward_backward[vit_l_32] - python 3.8 and 3.12
-    {% set tests_to_skip = tests_to_skip + " or test_forward_backward or test_jit_forward_backward" %}  # [win]
+outputs:
+  - name: torchvision
+  - name: torchvision-tests
+    test:
+      requires:
+        - pytest
+        - pytest-socket
+        - requests
+        - expecttest
+        - scipy
+        - pytest-mock
+        - {{ pin_subpackage('torchvision', exact=True) }}
+      source_files:
+        - test
+        - gallery
+        - references
+        - pytest.ini
+      commands:
+        # The ops tests give a lot of these errors due to ops that aren't implemented on MPS:
+        # https://github.com/pytorch/pytorch/blob/a8d6afb511a69687bbb2b7e88a3cf67917e1697e/aten/src/ATen/mps/MPSFallback.mm#L45
+        # See also https://github.com/pytorch/pytorch/issues/77764
+        # This is the recommended approach; users will see the same errors and will have to set the same env variable
+        - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
+        - python test/smoke_test.py
+        {% set tests_to_skip = "_not_a_real_test" %}
+        # These tests use internet
+        {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
+        # These are expected to give an error message "MPS does not support <some_op>", but they don't because we've got MPS fallback enabled
+        {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
+        # These give marginal maths error messages, passing the majority of the time but with one or other failing sporadically
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-0] or test_backward[False-True-mps-1]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-2] or test_backward[False-True-mps-3]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-4] or test_backward[False-True-mps-5]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-6] or test_backward[False-True-mps-7]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-8] or test_backward[False-True-mps-9]" %}       # [osx and arm64]
+        # The NMS kernel doesn't support float16 on MPS
+        {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
+        # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
+        # # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
+        # {% set tests_to_skip = "test_internet" %}
+        # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
+        # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
+        # with the same tests with different parameters passing.
+        # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
+        {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
 
-    # These are the suggetions from upstream for a set of tests that gives good coverage without running into out of memory issues.
-    # They told us the heavy part is probably the models.
-    # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
-    # so they're all kept in for reference.
-    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
-    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
-    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
-    - pytest --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
+        # These are the suggetions from a pytorch maintainer for a set of tests that gives good coverage without running into out of memory issues.
+        # They told us the heavy part is probably the models.
+        # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
+        # so they're all kept in for reference.
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
 
 about:
   home: https://pytorch.org/
