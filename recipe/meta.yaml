@@ -49,6 +49,7 @@ build:
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}                 # [gpu_variant == "cuda"]
@@ -78,11 +79,12 @@ requirements:
     - giflib
     # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/v0.20.1/setup.py#L371
     # ffmpeg is detected at buildtime in setup.py, so no build.sh/bld.bat additions required to handle this
-    - ffmpeg 6.1.1 # [linux and (py!=39)]
+    - ffmpeg {{ ffmpeg }}  # [linux and (py!=39)]
     - pillow >=5.3.0,!=8.3.*
     - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - pybind11
+    # pybind11 2.13 has py314 support
+    - pybind11 2.12
     - requests
   run:
     - python
