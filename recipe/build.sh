@@ -12,6 +12,7 @@ else
       echo "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}"
   fi
 
+  export CUDA_HOME="${PREFIX}"
   export FORCE_CUDA=1
 fi
 
