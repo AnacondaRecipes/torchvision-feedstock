@@ -3,7 +3,7 @@ set -ex
 if [[ "${gpu_variant}" != "cuda" ]]; then
   export FORCE_CUDA=0
 else
-  export CUDA_HOME="${PREFIX}"
+  export CUDA_HOME="${BUILD_PREFIX}"
   export FORCE_CUDA=1
   echo "DEBUG: CUDA_HOME=${CUDA_HOME}"
   echo "DEBUG: Checking if CUDA_HOME exists: $(ls -la ${CUDA_HOME}/bin/nvcc 2>&1 || echo 'nvcc not found')"
