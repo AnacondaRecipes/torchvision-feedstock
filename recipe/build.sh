@@ -3,6 +3,10 @@ set -ex
 if [[ "${gpu_variant}" != "cuda" ]]; then
   export FORCE_CUDA=0
 else
+  export CUDA_HOME="${PREFIX}"
+  export FORCE_CUDA=1
+  echo "DEBUG: CUDA_HOME=${CUDA_HOME}"
+  echo "DEBUG: Checking if CUDA_HOME exists: $(ls -la ${CUDA_HOME}/bin/nvcc 2>&1 || echo 'nvcc not found')"
   if [[ ${cuda_compiler_version} == 12.[0-8] ]]; then
       export TORCH_CUDA_ARCH_LIST="5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX"
       # $CUDA_HOME not set in CUDA 12.0. Using $PREFIX
@@ -11,9 +15,6 @@ else
       # nvcc 12.8 and later should be exporting TORCH_CUDA_ARCH_LIST
       echo "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}"
   fi
-
-  export CUDA_HOME="${PREFIX}"
-  export FORCE_CUDA=1
 fi
 
 if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" == "1" ]]; then
