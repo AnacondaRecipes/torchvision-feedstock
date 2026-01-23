@@ -41,6 +41,7 @@ build:
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
+    - CUDA_HOME={{ PREFIX }}                 # [gpu_variant == "cuda"]
   # no CUDA-enabled pytorch on aarch yet -- 2.8?
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
   # libtorch built for py313
