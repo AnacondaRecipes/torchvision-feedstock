@@ -83,7 +83,8 @@ requirements:
     - ffmpeg {{ ffmpeg }}  # [linux and (py!=39)]
     - pillow >=5.3.0,!=8.3.*
     # - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    # - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    - pytorch ={{ compatible_pytorch }}.*=*cpu*
     # pybind11 2.13 has py314 support
     - pybind11 2.12
     - requests
