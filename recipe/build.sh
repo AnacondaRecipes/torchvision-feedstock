@@ -37,4 +37,4 @@ export TORCHVISION_USE_NVJPEG=${FORCE_CUDA}
 
 
 export TORCHVISION_INCLUDE="${PREFIX}/include/"
-${PYTHON} -m pip install . -vv --no-deps --no-build-isolation
+${PYTHON} setup.py install --single-version-externally-managed --record=record.txt
