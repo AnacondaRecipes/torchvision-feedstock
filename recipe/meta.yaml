@@ -31,6 +31,7 @@ source:
     #- patches/0004-Fix-adjust_hue-on-ARM.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
+    - patches/0007-numpy-2-compatibility-in-test.patch
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
