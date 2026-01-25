@@ -31,7 +31,7 @@ source:
     #- patches/0004-Fix-adjust_hue-on-ARM.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
-    - patches/0007-numpy-2-compatibility-in-dataset.patch
+    - patches/0007-numpy-2-compatibility-in-test.patch
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
@@ -41,7 +41,6 @@ build:
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
-    - CUDA_HOME={{ PREFIX }}                 # [gpu_variant == "cuda"]
   # no CUDA-enabled pytorch on aarch yet -- 2.8?
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
   # libtorch built for py313
@@ -83,18 +82,14 @@ requirements:
     # ffmpeg is detected at buildtime in setup.py, so no build.sh/bld.bat additions required to handle this
     - ffmpeg {{ ffmpeg }}  # [linux and (py!=39)]
     - pillow >=5.3.0,!=8.3.*
-    # - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - pytorch ={{ compatible_pytorch }}.*=*cuda*          # [gpu_variant == "cuda"]
-    - pytorch ={{ compatible_pytorch }}.*=*cpu*           # [gpu_variant == "cpu"]
-    - pytorch ={{ compatible_pytorch }}.*=*mps*           # [gpu_variant == "metal"]
+    - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     # pybind11 2.13 has py314 support
     - pybind11 2.12
     - requests
   run:
     - python
-    - pytorch ={{ compatible_pytorch }}.*=*cuda*          # [gpu_variant == "cuda"]
-    - pytorch ={{ compatible_pytorch }}.*=*cpu*           # [gpu_variant == "cpu"]
-    - pytorch ={{ compatible_pytorch }}.*=*mps*           # [gpu_variant == "metal"]
+    - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - {{ pin_compatible('cudnn') }}          # [gpu_variant == "cuda"]
     - pillow >=5.3.0,!=8.3.*
     # They don't really document it, but it seems that they want a minimum version

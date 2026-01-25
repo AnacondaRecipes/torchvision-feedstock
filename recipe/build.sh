@@ -3,11 +3,7 @@ set -ex
 if [[ "${gpu_variant}" != "cuda" ]]; then
   export FORCE_CUDA=0
 else
-  export CUDA_HOME="${BUILD_PREFIX}"
-  export FORCE_CUDA=1
-  echo "DEBUG: CUDA_HOME=${CUDA_HOME}"
-  echo "DEBUG: Checking if CUDA_HOME exists: $(ls -la ${CUDA_HOME}/bin/nvcc 2>&1 || echo 'nvcc not found')"
-  if [[ ${cuda_compiler_version} == 12.[0-8] ]]; then
+  if [[ ${cuda_compiler_version} == 12.[0-6] ]]; then
       export TORCH_CUDA_ARCH_LIST="5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0+PTX"
       # $CUDA_HOME not set in CUDA 12.0. Using $PREFIX
       export CUDA_TOOLKIT_ROOT_DIR="${PREFIX}"
@@ -15,6 +11,8 @@ else
       # nvcc 12.8 and later should be exporting TORCH_CUDA_ARCH_LIST
       echo "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}"
   fi
+
+  export FORCE_CUDA=1
 fi
 
 if [[ "${CONDA_BUILD_CROSS_COMPILATION:-}" == "1" ]]; then
@@ -37,4 +35,4 @@ export TORCHVISION_USE_NVJPEG=${FORCE_CUDA}
 
 
 export TORCHVISION_INCLUDE="${PREFIX}/include/"
-${PYTHON} setup.py install --single-version-externally-managed --record=record.txt
+${PYTHON} -m pip install . -vv --no-deps --no-build-isolation
