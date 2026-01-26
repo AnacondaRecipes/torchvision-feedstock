@@ -1,11 +1,11 @@
-{% set version = "0.22.1" %}
+{% set version = "0.23.0" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.7" %}
+{% set compatible_pytorch = "2.8" %}
 
 {% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
