@@ -5,3 +5,4 @@ extra_labels_for_os:
 
 channels:
   - https://staging.continuum.io/pbp/fs/pytorch-feedstock/pr81/a90ade7
+  - https://staging.continuum.io/pbp/fs/triton-feedstock/pr8/194bd41
