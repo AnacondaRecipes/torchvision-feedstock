@@ -4,4 +4,4 @@ extra_labels_for_os:
   osx-arm64: [ventura]
 
 channels:
-  - https://staging.continuum.io/pbp/fs/pytorch-feedstock/pr81/6062f59
+  - https://staging.continuum.io/pbp/fs/pytorch-feedstock/pr81/a90ade7
