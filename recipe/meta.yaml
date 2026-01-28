@@ -42,7 +42,8 @@ build:
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
   # Python 3.14 support is introduced in v0.29, see https://github.com/pytorch/vision#installation
-  skip: true  # [not linux or not py312]
+  skip: true  # [not linux]
+  skip: true  # [py!=312]
 
 requirements:
   build:
