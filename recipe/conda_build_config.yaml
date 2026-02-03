@@ -22,5 +22,3 @@ zip_keys:                    # [(osx and arm64)]
   - gpu_variant              # [(osx and arm64)]
   - MACOSX_DEPLOYMENT_TARGET # [(osx and arm64)]
   - CONDA_BUILD_SYSROOT      # [(osx and arm64)]
-python:
-  - 3.12
