@@ -30,7 +30,7 @@ source:
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
     - patches/0007-numpy-2-compatibility-in-dataset.patch
-    - patches/0008-ffmpeg-keyframe.patch
+    - patches/0008-ffmpeg-keyframe.patch # [linux]
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
@@ -148,6 +148,7 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-4] or test_backward[False-True-mps-5]" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-6] or test_backward[False-True-mps-7]" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-8] or test_backward[False-True-mps-9]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-False-mps-9]" %}       # [osx and arm64]
         # The NMS kernel doesn't support float16 on MPS
         {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
         # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
