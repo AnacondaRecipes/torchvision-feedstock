@@ -29,6 +29,7 @@ source:
     - patches/0003-dont-test-for-turbo-jpeg.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
+    - patches/0008-ffmpeg-keyframe.patch # [linux]
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
@@ -40,15 +41,15 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
-  # Python 3.14 support is introduced in v0.29, see https://github.com/pytorch/vision#installation
-  skip: true  # [py>313 or not linux]
+  skip: true  # [not win]
 
 requirements:
   build:
     - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ compiler('cuda') }}                 # [gpu_variant == "cuda"]
+    - {{ compiler('cuda') }}                   # [gpu_variant == "cuda"]
+    - cuda-version {{ cuda_compiler_version }} # [gpu_variant == "cuda"]
     - libcublas-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
     - libcusolver-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
     - libcusparse-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
@@ -61,6 +62,7 @@ requirements:
     - pip
     - setuptools
     - wheel
+    - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
     - cudnn                                      # [gpu_variant == "cuda"]
     - libcublas-dev                              # [gpu_variant == "cuda"]
     - libcusolver-dev                            # [gpu_variant == "cuda"]
@@ -90,7 +92,6 @@ requirements:
     # They don't really document it, but it seems that they want a minimum version
     # https://github.com/pytorch/vision/blob/v0.19.0/packaging/torchvision/meta.yaml#L26
     - numpy >=1.23.5
-    - __cuda                                  # [gpu_variant == "cuda"]
     # On macOS, the GPU accelerated backend, MPS, can be used from macOS v12.3. This isn't tightly dependent on the
     # SDK version used.
     - __osx >=12.3                            # [gpu_variant == "metal"]
