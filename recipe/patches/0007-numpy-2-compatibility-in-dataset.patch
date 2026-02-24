@@ -1,14 +1,13 @@
-From 3e29db30c4036bf80ae30fc6e3c49244dd54a6f6 Mon Sep 17 00:00:00 2001
+From eaed650ddf26a0e4ef6af9f3e42237fd7a8dafa2 Mon Sep 17 00:00:00 2001
 From: Jamie Robertson <jamierobertsongames@gmail.com>
-Date: Wed, 28 Jan 2026 11:48:26 +0000
+Date: Mon, 23 Feb 2026 10:57:26 +0000
 Subject: [PATCH] numpy 2 compatibility in test
-
 ---
  torchvision/datasets/_optical_flow.py | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/torchvision/datasets/_optical_flow.py b/torchvision/datasets/_optical_flow.py
-index 9ee4c4d..4e4588e 100644
+index 52884dbc18..778e58a99a 100644
 --- a/torchvision/datasets/_optical_flow.py
 +++ b/torchvision/datasets/_optical_flow.py
 @@ -503,8 +503,8 @@ def _read_flo(file_name: str) -> np.ndarray:
