@@ -42,7 +42,7 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
-  skip: true  # [not win]
+  skip: true  # [not osx]
 
 requirements:
   build:
