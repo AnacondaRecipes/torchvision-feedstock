@@ -42,7 +42,7 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
-  skip: true  # [not osx] 
+  skip: true  # [not win]
 
 requirements:
   build:
@@ -64,6 +64,7 @@ requirements:
     - setuptools
     - wheel
     - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
+    - libcusparse-dev                            # [gpu_variant == "cuda"]
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
@@ -137,7 +138,6 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-4] or test_backward[False-True-mps-5]" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-6] or test_backward[False-True-mps-7]" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-8] or test_backward[False-True-mps-9]" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward[False-False-mps-9]" %}       # [osx and arm64]
         # The NMS kernel doesn't support float16 on MPS
         {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
         # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
