@@ -64,10 +64,6 @@ requirements:
     - setuptools
     - wheel
     - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
-    - cudnn                                      # [gpu_variant == "cuda"]
-    - libcublas-dev                              # [gpu_variant == "cuda"]
-    - libcusolver-dev                            # [gpu_variant == "cuda"]
-    - libcusparse-dev                            # [gpu_variant == "cuda"]
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
@@ -88,14 +84,7 @@ requirements:
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - {{ pin_compatible('cudnn') }}          # [gpu_variant == "cuda"]
     - pillow >=5.3.0,!=8.3.*
-    # They don't really document it, but it seems that they want a minimum version
-    # https://github.com/pytorch/vision/blob/v0.19.0/packaging/torchvision/meta.yaml#L26
-    - numpy >=1.23.5
-    # On macOS, the GPU accelerated backend, MPS, can be used from macOS v12.3. This isn't tightly dependent on the
-    # SDK version used.
-    - __osx >=12.3                            # [gpu_variant == "metal"]
 
 test:
   requires:
