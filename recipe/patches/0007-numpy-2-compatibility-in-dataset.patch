@@ -1,14 +1,14 @@
-From 3e29db30c4036bf80ae30fc6e3c49244dd54a6f6 Mon Sep 17 00:00:00 2001
-From: Jamie Robertson <jamierobertsongames@gmail.com>
-Date: Wed, 28 Jan 2026 11:48:26 +0000
-Subject: [PATCH] numpy 2 compatibility in test
+From cb8b7bbb10eecdd022402dcc58b1345b4125a73e Mon Sep 17 00:00:00 2001
+From: Zhitao Yu <zycoding1@gmail.com>
+Date: Mon, 5 Jan 2026 11:17:07 -0800
+Subject: [PATCH] fix the datsset test failture
 
 ---
  torchvision/datasets/_optical_flow.py | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/torchvision/datasets/_optical_flow.py b/torchvision/datasets/_optical_flow.py
-index 9ee4c4d..4e4588e 100644
+index 52884dbc183..af8e17ad95c 100644
 --- a/torchvision/datasets/_optical_flow.py
 +++ b/torchvision/datasets/_optical_flow.py
 @@ -503,8 +503,8 @@ def _read_flo(file_name: str) -> np.ndarray:
@@ -17,11 +17,8 @@ index 9ee4c4d..4e4588e 100644
  
 -        w = int(np.fromfile(f, "<i4", count=1))
 -        h = int(np.fromfile(f, "<i4", count=1))
-+        w = int(np.fromfile(f, "<i4", count=1)[0])
-+        h = int(np.fromfile(f, "<i4", count=1)[0])
++        w = np.fromfile(f, "<i4", count=1).item()
++        h = np.fromfile(f, "<i4", count=1).item()
          data = np.fromfile(f, "<f4", count=2 * w * h)
          return data.reshape(h, w, 2).transpose(2, 0, 1)
  
--- 
-2.50.1 (Apple Git-155)
-
