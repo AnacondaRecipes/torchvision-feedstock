@@ -1,13 +1,13 @@
-{% set version = "0.20.1" %}
+{% set version = "0.22.1" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.5" %}
+{% set compatible_pytorch = "2.7" %}
 
-{% set build = 2 %}
+{% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
@@ -21,16 +21,16 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 7e08c7f56e2c89859310e53d898f72bccc4987cd83e08cfd6303513da15a9e71
+  sha256: fa1b0a58e13c08329bcff8d52607b4e25944fd074c01dee1b501c8158fadcdec
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
     - patches/0002-Force-nvjpeg-and-force-failure.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
-    # https://github.com/pytorch/vision/pull/8618
-    - patches/0004-Fix-adjust_hue-on-ARM.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
+    - patches/0007-numpy-2-compatibility-in-dataset.patch
+    - patches/0008-ffmpeg-keyframe.patch # [linux]
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
@@ -40,17 +40,17 @@ build:
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
-  skip: true  # [s390x]
   # no CUDA-enabled pytorch on aarch yet
-  skip: true  # [gpu_variant == "cuda" and aarch64]
-  # Python 3.13 support will be introduced in v 0.21, see here https://github.com/pytorch/vision/issues/8730#issuecomment-2504291914
-  skip: true  # [py>=313]
+  skip: true  # [gpu_variant == "cuda" and (not x86_64)]
+  skip: true  # [not win]
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ compiler('cuda') }}                 # [gpu_variant == "cuda"]
+    - {{ compiler('cuda') }}                   # [gpu_variant == "cuda"]
+    - cuda-version {{ cuda_compiler_version }} # [gpu_variant == "cuda"]
     - libcublas-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
     - libcusolver-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
     - libcusparse-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
@@ -63,39 +63,29 @@ requirements:
     - pip
     - setuptools
     - wheel
-    - cudnn                                      # [gpu_variant == "cuda"]
-    - libcublas-dev                              # [gpu_variant == "cuda"]
-    - libcusolver-dev                            # [gpu_variant == "cuda"]
+    - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
     - libcusparse-dev                            # [gpu_variant == "cuda"]
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
-    - libwebp {{ libwebp }}
+    - libwebp >=1.6.0,<2.0a0 
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - giflib
     # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/v0.20.1/setup.py#L371
     # ffmpeg is detected at buildtime in setup.py, so no build.sh/bld.bat additions required to handle this
-    - ffmpeg 6.1.1 # [linux and (py!=39)]
-    # exclude 8.3.0 and 8.3.1 specifically due to pytorch/vision#4146, python-pillow/Pillow#5571
-    - pillow >=5.3.0,!=8.3.0,!=8.3.1
+    - ffmpeg {{ ffmpeg }}  # [linux and (py!=39)]
+    - pillow >=5.3.0,!=8.3.*
     - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - pybind11
+    # pybind11 2.13 has py314 support
+    - pybind11 2.12
     - requests
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - {{ pin_compatible('cudnn') }}          # [gpu_variant == "cuda"]
-    - pillow >=5.3.0,!=8.3.0,!=8.3.1
-    # They don't really document it, but it seems that they want a minimum version
-    # https://github.com/pytorch/vision/blob/v0.19.0/packaging/torchvision/meta.yaml#L26
-    - numpy >=1.23.5
-    - __cuda                                  # [gpu_variant == "cuda"]
-    # On macOS, the GPU accelerated backend, MPS, can be used from macOS v12.3. This isn't tightly dependent on the
-    # SDK version used.
-    - __osx >=12.3                            # [gpu_variant == "metal"]
+    - pillow >=5.3.0,!=8.3.*
 
 test:
   requires:
