@@ -42,7 +42,7 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
-  skip: true  # [not osx]
+  skip: true  # [not linux]
 
 requirements:
   build:
@@ -64,6 +64,8 @@ requirements:
     - setuptools
     - wheel
     - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
+    - libcublas-dev                              # [gpu_variant == "cuda"]
+    - libcusolver-dev                            # [gpu_variant == "cuda"]
     - libcusparse-dev                            # [gpu_variant == "cuda"]
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
