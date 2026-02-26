@@ -70,7 +70,7 @@ requirements:
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
-    - libwebp_base {{ libwebp_base }}
+    - libwebp >=1.6.0,<2.0a0
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - giflib
     # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/v0.20.1/setup.py#L371
