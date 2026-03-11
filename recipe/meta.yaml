@@ -115,6 +115,7 @@ outputs:
         - expecttest
         - scipy
         - pytest-mock
+        - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
         - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
