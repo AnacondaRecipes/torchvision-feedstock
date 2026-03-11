@@ -50,12 +50,12 @@ requirements:
     - {{ compiler('cxx') }}
     - {{ compiler('cuda') }}                   # [gpu_variant == "cuda"]
     - cuda-version {{ cuda_compiler_version }} # [gpu_variant == "cuda"]
-    - libcublas-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
-    - libcusolver-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
-    - libcusparse-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
-    - libnvjpeg-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
-    - python                                 # [build_platform != target_platform]
-    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - libcublas-dev                            # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libcusolver-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libcusparse-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libnvjpeg-dev                            # [build_platform != target_platform and gpu_variant == "cuda"]
+    - python                                   # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}       # [build_platform != target_platform]
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*  # [build_platform != target_platform]
   host:
     - python
@@ -101,7 +101,7 @@ test:
     # use pip list to manually check that the version is correctly reported
     # Otherwise downstream package's pip check may fail
     - pip list
-    - pip list | grep torchvision | grep {{ version }}         # [unix]
+    - pip list | grep torchvision | grep {{ version }} # [unix]
     - pip check
 
 outputs:
