@@ -108,6 +108,9 @@ test:
 outputs:
   - name: torchvision
   - name: torchvision-tests
+    requirements:
+      run:
+        - {{ pin_subpackage('torchvision', exact=True) }}
     test:
       requires:
         - pytest
@@ -148,12 +151,6 @@ outputs:
         # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
         # # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
         # {% set tests_to_skip = "test_internet" %}
-        # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
-        # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
-        # with the same tests with different parameters passing.
-        # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
-        {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
-
         # These are the suggetions from a pytorch maintainer for a set of tests that gives good coverage without running into out of memory issues.
         # They told us the heavy part is probably the models.
         # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
