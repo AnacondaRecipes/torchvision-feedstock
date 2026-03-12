@@ -108,9 +108,6 @@ test:
 outputs:
   - name: torchvision
   - name: torchvision-tests
-    requirements:
-      run:
-        - {{ pin_subpackage('torchvision', exact=True) }}
     test:
       requires:
         - pytest
