@@ -111,6 +111,7 @@ outputs:
     requirements:
       run:
         - {{ pin_subpackage('torchvision', exact=True) }}
+        - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     test:
       requires:
         - pytest
@@ -119,7 +120,6 @@ outputs:
         - expecttest
         - scipy
         - pytest-mock
-        - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
       source_files:
         - test
         - gallery
