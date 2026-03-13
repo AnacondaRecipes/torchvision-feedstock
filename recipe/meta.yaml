@@ -41,6 +41,8 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
+  # only py313 pytorch 2.9.1 packages available on linux/win for initial build
+  skip: true  # [(linux or win) and py!=313]
 
 requirements:
   build:
