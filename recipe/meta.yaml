@@ -1,11 +1,11 @@
-{% set version = "0.23.0" %}
+{% set version = "0.24.1" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.8" %}
+{% set compatible_pytorch = "2.9.1" %}
 
 {% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
@@ -21,7 +21,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: db5a91569e5eb4a3b02e9eaad6080335f5ae3824890a697f5618541999f04027
+  sha256: 071da2078600bfec4886efab77358c9329abfedcf1488b05879b556cb9b84ba7
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -30,7 +30,6 @@ source:
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
     - patches/0007-numpy-2-compatibility-in-dataset.patch
-    - patches/0008-ffmpeg-keyframe.patch # [linux]
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
@@ -74,14 +73,9 @@ requirements:
     - libwebp >=1.6.0,<2.0a0
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - giflib
-    # ffmpeg only supported on linux, and also unsupported on python 3.9: https://github.com/pytorch/vision/blob/v0.20.1/setup.py#L371
-    # ffmpeg is detected at buildtime in setup.py, so no build.sh/bld.bat additions required to handle this
-    - ffmpeg {{ ffmpeg }}  # [linux and (py!=39)]
     - pillow >=5.3.0,!=8.3.*
     - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    # pybind11 2.13 has py314 support
-    - pybind11 2.12
     - requests
   run:
     - python
