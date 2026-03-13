@@ -69,7 +69,7 @@ requirements:
     - libcusparse-dev                            # [gpu_variant == "cuda"]
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
-    - cuda-driver-dev                            # [gpu_variant == "cuda"]
+    - cuda-driver-dev                            # [gpu_variant == "cuda" and linux]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
@@ -115,6 +115,7 @@ outputs:
         - scipy
         - pytest-mock
         - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+        - cuda-driver-dev                                              # [gpu_variant == "cuda" and linux]
         - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
