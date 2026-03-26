@@ -8,6 +8,7 @@ Subject: [PATCH] fix the datsset test failture
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/torchvision/datasets/_optical_flow.py b/torchvision/datasets/_optical_flow.py
+index 52884dbc18..778e58a99a 100644
 index 52884dbc183..af8e17ad95c 100644
 --- a/torchvision/datasets/_optical_flow.py
 +++ b/torchvision/datasets/_optical_flow.py
