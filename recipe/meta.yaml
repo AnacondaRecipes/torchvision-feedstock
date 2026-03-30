@@ -133,11 +133,14 @@ outputs:
         - pytest.ini
       commands:
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
-        # DEBUG round 4: test if {% set %} inside output test section is the cause
+        # DEBUG round 5: test {% set %} with platform selectors
         {% set tests_to_skip = "_not_a_real_test" %}
         {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
-        - echo "DEBUG Jinja2 set block rendered successfully"
-        - echo "tests_to_skip={{ tests_to_skip }}"
+        {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward" %}               # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
+        - echo "DEBUG tests_to_skip={{ tests_to_skip }}"
         - python -c "import torchvision; print(torchvision.__version__)"
 
 about:
