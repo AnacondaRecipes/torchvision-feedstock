@@ -137,7 +137,8 @@ outputs:
         # Use broader patterns (e.g. "test_backward" instead of "test_backward[False-True-mps-0]").
         {% set tests_to_skip = "_not_a_real_test" %}
         {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
-        {% set tests_to_skip = tests_to_skip + " or test_decode_bad_encoded_data" %}  # [win]
+        # libwebp error message changed: test expects "WebPGetFeatures failed." but newer libwebp returns different string
+        {% set tests_to_skip = tests_to_skip + " or (test_decode_bad_encoded_data and decode_webp)" %}  # [win]
         {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward" %}               # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
