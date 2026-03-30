@@ -42,6 +42,8 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
+  # pybind11 2.12 and pytorch 2.8 have no py314 builds
+  skip: true  # [py>313]
 
 requirements:
   build:
