@@ -112,9 +112,9 @@ outputs:
   - name: torchvision
   - name: torchvision-tests
     build:
-      script:
-        - "true"   # [unix]
-        - "exit /b 0"  # [win]
+      string: {{ gpu_variant }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
+      script: "true"   # [unix]
+      script: "exit /b 0"  # [win]
     requirements:
       run:
         - {{ pin_subpackage('torchvision', exact=True) }}
