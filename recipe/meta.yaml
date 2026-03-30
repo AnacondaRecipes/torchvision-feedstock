@@ -141,7 +141,7 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
         - echo "DEBUG tests_to_skip={{ tests_to_skip }}"
-        - python -c "import torchvision; print(torchvision.__version__)"
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
 
 about:
   home: https://pytorch.org/
