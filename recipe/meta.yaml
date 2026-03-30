@@ -140,7 +140,8 @@ outputs:
         # libwebp error message changed: test expects "WebPGetFeatures failed." but newer libwebp returns different string
         {% set tests_to_skip = tests_to_skip + " or (test_decode_bad_encoded_data and decode_webp)" %}  # [win]
         {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward" %}               # [osx and arm64]
+        # Sporadic marginal math errors on MPS backward pass (originally individual variants 0-9)
+        {% set tests_to_skip = tests_to_skip + " or (test_backward and False-True-mps)" %}  # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
