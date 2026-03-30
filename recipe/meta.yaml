@@ -132,8 +132,9 @@ outputs:
         - references
         - pytest.ini
       commands:
-        - echo "DEBUG torchvision-tests test phase reached"
-        - python -c "import torchvision; print(torchvision.__version__)"
+        - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
+        - python test/smoke_test.py
+        - pytest --disable-socket --verbose --durations=50 test/test_image.py
 
 about:
   home: https://pytorch.org/
