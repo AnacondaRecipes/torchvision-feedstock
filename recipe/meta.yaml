@@ -133,15 +133,22 @@ outputs:
         - pytest.ini
       commands:
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
-        # DEBUG round 5: test {% set %} with platform selectors
+        # DEBUG round 7: full original test commands from master recipe
         {% set tests_to_skip = "_not_a_real_test" %}
         {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
         {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward" %}               # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
-        - echo "DEBUG tests_to_skip={{ tests_to_skip }}"
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-0] or test_backward[False-True-mps-1]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-2] or test_backward[False-True-mps-3]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-4] or test_backward[False-True-mps-5]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-6] or test_backward[False-True-mps-7]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-8] or test_backward[False-True-mps-9]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes[cuda-dtype0-BoundingBoxFormat.CXCYWHR-shear-value13]" %}
+        {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_decode_bad_encoded_data" %}  # [win]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
+        - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
 
 about:
   home: https://pytorch.org/
