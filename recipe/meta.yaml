@@ -113,8 +113,8 @@ outputs:
   - name: torchvision-tests
     build:
       string: {{ gpu_variant }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
-      script: "true"   # [unix]
-      script: "exit /b 0"  # [win]
+      script: echo "noop"   # [unix]
+      script: echo "noop"   # [win]
     requirements:
       run:
         - {{ pin_subpackage('torchvision', exact=True) }}
