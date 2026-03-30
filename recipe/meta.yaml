@@ -119,8 +119,6 @@ outputs:
         - expecttest
         - scipy
         - pytest-mock
-        - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-        - cuda-driver-dev                                              # [gpu_variant == "cuda" and linux]
         - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
