@@ -133,8 +133,12 @@ outputs:
         - pytest.ini
       commands:
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
-        - python test/smoke_test.py
-        - pytest --disable-socket --verbose --durations=50 test/test_image.py
+        # DEBUG round 4: test if {% set %} inside output test section is the cause
+        {% set tests_to_skip = "_not_a_real_test" %}
+        {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
+        - echo "DEBUG Jinja2 set block rendered successfully"
+        - echo "tests_to_skip={{ tests_to_skip }}"
+        - python -c "import torchvision; print(torchvision.__version__)"
 
 about:
   home: https://pytorch.org/
