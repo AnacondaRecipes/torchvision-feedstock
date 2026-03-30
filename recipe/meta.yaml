@@ -1,11 +1,11 @@
-{% set version = "0.22.1" %}
+{% set version = "0.23.0" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.7" %}
+{% set compatible_pytorch = "2.8" %}
 
 {% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
@@ -21,7 +21,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: fa1b0a58e13c08329bcff8d52607b4e25944fd074c01dee1b501c8158fadcdec
+  sha256: db5a91569e5eb4a3b02e9eaad6080335f5ae3824890a697f5618541999f04027
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -42,7 +42,6 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
-  skip: true  # [not linux]
 
 requirements:
   build:
@@ -69,6 +68,7 @@ requirements:
     - libcusparse-dev                            # [gpu_variant == "cuda"]
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
+    - cuda-driver-dev                            # [gpu_variant == "cuda" and linux]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
@@ -92,6 +92,7 @@ requirements:
 test:
   requires:
     - pip
+    - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
   imports:
     - torchvision
     - torchvision.datasets
@@ -116,6 +117,8 @@ outputs:
         - expecttest
         - scipy
         - pytest-mock
+        - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+        - cuda-driver-dev                                              # [gpu_variant == "cuda" and linux]
         - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
@@ -140,17 +143,13 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-4] or test_backward[False-True-mps-5]" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-6] or test_backward[False-True-mps-7]" %}       # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-8] or test_backward[False-True-mps-9]" %}       # [osx and arm64]
+        # This test fails due to accuracy issues, the bounds for a passing test are too strict and have been relaxed in the upstream repo
+        {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes[cuda-dtype0-BoundingBoxFormat.CXCYWHR-shear-value13]" %}
         # The NMS kernel doesn't support float16 on MPS
         {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
         # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
         # # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
         # {% set tests_to_skip = "test_internet" %}
-        # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
-        # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
-        # with the same tests with different parameters passing.
-        # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
-        {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
-
         # These are the suggetions from a pytorch maintainer for a set of tests that gives good coverage without running into out of memory issues.
         # They told us the heavy part is probably the models.
         # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
