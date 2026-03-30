@@ -119,6 +119,18 @@ outputs:
       run:
         - {{ pin_subpackage('torchvision', exact=True) }}
     test:
+      requires:
+        - pytest
+        - pytest-socket
+        - requests
+        - expecttest
+        - scipy
+        - pytest-mock
+      source_files:
+        - test
+        - gallery
+        - references
+        - pytest.ini
       commands:
         - echo "DEBUG torchvision-tests test phase reached"
         - python -c "import torchvision; print(torchvision.__version__)"
