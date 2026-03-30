@@ -111,6 +111,13 @@ test:
 outputs:
   - name: torchvision
   - name: torchvision-tests
+    build:
+      script:
+        - "true"   # [unix]
+        - "exit /b 0"  # [win]
+    requirements:
+      run:
+        - {{ pin_subpackage('torchvision', exact=True) }}
     test:
       requires:
         - pytest
@@ -119,7 +126,6 @@ outputs:
         - expecttest
         - scipy
         - pytest-mock
-        - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
         - gallery
