@@ -113,21 +113,15 @@ outputs:
   - name: torchvision-tests
     build:
       # DEBUG: minimal test to diagnose osx-arm64 silent failure
-      # Only build on osx-arm64 + one linux variant to compare
-      skip: true  # [win]
-      skip: true  # [py!=312]
+      skip: true  # [win or py!=312]
       string: {{ gpu_variant }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
-      script: echo "noop"   # [unix]
-      script: echo "noop"   # [win]
     requirements:
       run:
         - {{ pin_subpackage('torchvision', exact=True) }}
     test:
       commands:
         - echo "DEBUG torchvision-tests test phase reached"
-        - echo "DEBUG platform info"
-        - python -c "import sys; print(f'Python: {sys.version}')"
-        - python -c "import torchvision; print(f'torchvision: {torchvision.__version__}')"
+        - python -c "import torchvision; print(torchvision.__version__)"
 
 about:
   home: https://pytorch.org/
