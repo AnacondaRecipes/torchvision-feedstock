@@ -1,11 +1,11 @@
-{% set version = "0.22.1" %}
+{% set version = "0.23.0" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.7" %}
+{% set compatible_pytorch = "2.8" %}
 
 {% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
@@ -21,7 +21,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: fa1b0a58e13c08329bcff8d52607b4e25944fd074c01dee1b501c8158fadcdec
+  sha256: db5a91569e5eb4a3b02e9eaad6080335f5ae3824890a697f5618541999f04027
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -42,7 +42,8 @@ build:
     - BUILD_VERSION={{ version }}
   # no CUDA-enabled pytorch on aarch yet
   skip: true  # [gpu_variant == "cuda" and (not x86_64)]
-  skip: true  # [not linux]
+  # pybind11 2.12 and pytorch 2.8 have no py314 builds
+  skip: true  # [py>313]
 
 requirements:
   build:
@@ -123,38 +124,23 @@ outputs:
         - references
         - pytest.ini
       commands:
-        # The ops tests give a lot of these errors due to ops that aren't implemented on MPS:
-        # https://github.com/pytorch/pytorch/blob/a8d6afb511a69687bbb2b7e88a3cf67917e1697e/aten/src/ATen/mps/MPSFallback.mm#L45
-        # See also https://github.com/pytorch/pytorch/issues/77764
-        # This is the recommended approach; users will see the same errors and will have to set the same env variable
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
         - python test/smoke_test.py
+        # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
+        # conda-build's selector parser misinterprets [...] as selectors inside output
+        # test sections, causing silent rendering failures on osx-arm64.
+        # Use broader patterns (e.g. "test_backward" instead of "test_backward[False-True-mps-0]").
         {% set tests_to_skip = "_not_a_real_test" %}
-        # These tests use internet
         {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
-        # These are expected to give an error message "MPS does not support <some_op>", but they don't because we've got MPS fallback enabled
+        # libwebp error message changed: test expects "WebPGetFeatures failed." but newer libwebp returns different string
+        {% set tests_to_skip = tests_to_skip + " or (test_decode_bad_encoded_data and decode_webp)" %}  # [win]
         {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
-        # These give marginal maths error messages, passing the majority of the time but with one or other failing sporadically
-        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-0] or test_backward[False-True-mps-1]" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-2] or test_backward[False-True-mps-3]" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-4] or test_backward[False-True-mps-5]" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-6] or test_backward[False-True-mps-7]" %}       # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_backward[False-True-mps-8] or test_backward[False-True-mps-9]" %}       # [osx and arm64]
-        # The NMS kernel doesn't support float16 on MPS
-        {% set tests_to_skip = tests_to_skip + " or test_nms_float16[mps]" %}       # [osx and arm64]
-        # Disable all tests that download something, for security reasons. test/test_datasets_download are ignored in the pytest.ini.
-        # # This should remove all internet-accessing tests: https://github.com/pytorch/vision/blob/126fc22ce33e6c2426edcf9ed540810c178fe9ce/test/test_internet.py#L1
-        # {% set tests_to_skip = "test_internet" %}
-        # Two tests here, test_transform[make_image_tensor-1.0] and test_transform[make_image_pil-1.0], fail with the error
-        # "The least squares solution could not be computed because the input matrix does not have full rank", only on osx-64,
-        # with the same tests with different parameters passing.
-        # This is very marginal; could be investigated further but osx-64 is becoming lesser-supported so not worth the time.
-        {% set tests_to_skip = tests_to_skip + " or test_transform" %}  # [osx and x86_64]
-
-        # These are the suggetions from a pytorch maintainer for a set of tests that gives good coverage without running into out of memory issues.
-        # They told us the heavy part is probably the models.
-        # Some tests_to_skip may not fall into these tests, but the work was done to eliminate single problematic tests
-        # so they're all kept in for reference.
+        # Sporadic marginal math errors on MPS backward pass (originally individual variants 0-9)
+        {% set tests_to_skip = tests_to_skip + " or (test_backward and False-True-mps)" %}  # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
+        # DeformConv aot_dispatch_dynamic fails on MPS
+        {% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}   # [osx and arm64]
+        {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
