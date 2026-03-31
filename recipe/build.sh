@@ -8,8 +8,8 @@ else
       # $CUDA_HOME not set in CUDA 12.0. Using $PREFIX
       export CUDA_TOOLKIT_ROOT_DIR="${PREFIX}"
   else
-      # nvcc 12.8 and later should be exporting TORCH_CUDA_ARCH_LIST
-      echo "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}"
+      # CUDA 12.8+/13.x: cap at 10.0+PTX (pytorch 2.9.1 doesn't support arch 10.1)
+      export TORCH_CUDA_ARCH_LIST="5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0;10.0+PTX"
   fi
 
   export FORCE_CUDA=1
