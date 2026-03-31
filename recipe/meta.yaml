@@ -93,7 +93,6 @@ requirements:
 test:
   requires:
     - pip
-    - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
   imports:
     - torchvision
     - torchvision.datasets
