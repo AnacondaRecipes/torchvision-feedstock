@@ -110,11 +110,6 @@ test:
 outputs:
   - name: torchvision
   - name: torchvision-tests
-    build:
-      string: {{ gpu_variant }}_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}
-    requirements:
-      run:
-        - {{ pin_subpackage('torchvision', exact=True) }}
     test:
       requires:
         - pytest
@@ -123,6 +118,7 @@ outputs:
         - expecttest
         - scipy
         - pytest-mock
+        - {{ pin_subpackage('torchvision', exact=True) }}
       source_files:
         - test
         - gallery
