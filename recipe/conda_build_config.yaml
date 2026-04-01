@@ -3,3 +3,4 @@ cuda_compiler_version:       # [(linux or win)]
   - 13.0                     # [(linux or win)]
 gpu_variant:
   - cuda                     # [(linux or win)]
+  - cpu                      # [osx]

@@ -36,11 +36,11 @@ build:
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
+  # CUDA-only split PR — skip CPU/MPS builds (osx dummy variant for Jinja2 rendering)
+  skip: true  # [gpu_variant != "cuda"]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
-  # no CUDA-enabled pytorch on aarch yet (except cuda 13.0)
-  # handled via CBC: cuda 12.8 restricted to x86_64/win, cuda 13.0 on all linux+win
 
 requirements:
   build:
