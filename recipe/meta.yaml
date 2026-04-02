@@ -58,8 +58,8 @@ requirements:
   host:
     - python
     - pip
-    # setup.py imports pkg_resources which was removed in setuptools 78+
-    - setuptools <78
+    # setup.py imports pkg_resources which was removed in setuptools 82+
+    - setuptools <82
     - wheel
     - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
     - libcublas-dev                              # [gpu_variant == "cuda"]
