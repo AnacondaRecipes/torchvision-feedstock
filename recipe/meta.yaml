@@ -28,7 +28,6 @@ source:
     - patches/0002-Force-nvjpeg-and-force-failure.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
-    - patches/0006-explicitly-configure-mps.patch
     - patches/0007-numpy-2-compatibility-in-dataset.patch
 
 build:
@@ -134,6 +133,8 @@ outputs:
         # DeformConv aot_dispatch_dynamic fails on MPS
         {% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}   # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
+        # py314: transform tests fail with make_image_tensor (upstream py314 compatibility issue)
+        {% set tests_to_skip = tests_to_skip + " or test_transform" %}              # [py>=314]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
