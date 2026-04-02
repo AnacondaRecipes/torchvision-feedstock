@@ -4,6 +4,8 @@ if "%gpu_variant%" neq "cuda" (
   set FORCE_CUDA=0
 ) else (
   set FORCE_CUDA=1
+  :: CUDA 13.x: dropped compute_50-61, min is 7.0 (Volta)
+  set TORCH_CUDA_ARCH_LIST=7.0;7.5;8.0;8.6;8.9;9.0;10.0+PTX
 )
 set TORCHVISION_USE_NVJPEG=%FORCE_CUDA%
 
