@@ -81,6 +81,7 @@ requirements:
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
+    - __cuda                                      # [gpu_variant == "cuda"]
     - pillow >=5.3.0,!=8.3.*
 
 test:
