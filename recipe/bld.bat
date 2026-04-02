@@ -5,7 +5,7 @@ if "%gpu_variant%" neq "cuda" (
 ) else (
   set FORCE_CUDA=1
   :: pytorch 2.9.1 doesn't support arch 10.1 exported by nvcc 12.8+
-  set TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0;10.0;10.3;12.0;12.1+PTX
+  set TORCH_CUDA_ARCH_LIST=5.0;6.0;6.1;7.0;7.5;8.0;8.6;8.9;9.0;10.0+PTX
 )
 set TORCHVISION_USE_NVJPEG=%FORCE_CUDA%
 
