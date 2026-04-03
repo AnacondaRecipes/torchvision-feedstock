@@ -15,5 +15,6 @@ set TORCHVISION_USE_NVJPEG=%FORCE_CUDA%
 
 set TORCHVISION_INCLUDE=%LIBRARY_INC%
 :: point the build system towards the .lib files and CUDA libs from host env
-set LIB=%PREFIX%\\Lib\\site-packages\\torch\\lib;%LIBRARY_LIB%;%LIB%
+:: CUDA 13.x installs .lib files to Library\lib\x64 (changed from Library\lib in 12.x)
+set LIB=%PREFIX%\\Lib\\site-packages\\torch\\lib;%LIBRARY_LIB%;%LIBRARY_PREFIX%\lib\x64;%LIB%
 %PYTHON% -m pip install . -vv --no-deps --no-build-isolation
