@@ -3,7 +3,7 @@ set -ex
 if [[ "${gpu_variant}" != "cuda" ]]; then
   export FORCE_CUDA=0
 else
-  # CUDA 13.x: dropped compute_50-61 (Maxwell/Pascal), min is 7.0 (Volta)
+  # CUDA 13.x: dropped compute_50-70 (Maxwell/Pascal/Volta), min is 7.5 (Turing)
   export TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9;9.0;10.0;10.3;12.0;12.1+PTX"
 
   export FORCE_CUDA=1
