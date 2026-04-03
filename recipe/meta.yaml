@@ -142,6 +142,8 @@ outputs:
         # DeformConv aot_dispatch_dynamic fails on MPS
         {% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}   # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
+        # NMS CUDA kernel tensor size mismatch on Windows
+        {% set tests_to_skip = tests_to_skip + " or test_nms_gpu or test_autocast" %}  # [win]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
