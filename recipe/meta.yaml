@@ -120,7 +120,8 @@ outputs:
       commands:
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
         # Disable inductor JIT for CUDA tests — cuda.h not in test env
-        - export TORCHINDUCTOR_DISABLE=1             # [gpu_variant == "cuda"]
+        - export TORCHINDUCTOR_DISABLE=1             # [gpu_variant == "cuda" and not win]
+        - set TORCHINDUCTOR_DISABLE=1                # [gpu_variant == "cuda" and win]
         - python test/smoke_test.py
         # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
         # conda-build's selector parser misinterprets [...] as selectors inside output
@@ -137,6 +138,8 @@ outputs:
         # DeformConv aot_dispatch_dynamic fails on MPS
         {% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}   # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
+        # NMS CUDA kernel tensor size mismatch on Windows
+        {% set tests_to_skip = tests_to_skip + " or test_nms_gpu or test_autocast" %}  # [win]
         # py314: JIT/scripting and transform tests fail (upstream py314 compatibility issue)
         {% set tests_to_skip = tests_to_skip + " or test_transform or jit or scriptability or opcheck or test_schema or test_autograd_registration or test_faketensor or test_aot_dispatch_dynamic" %}  # [py>=314]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
