@@ -119,6 +119,8 @@ outputs:
         - pytest.ini
       commands:
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
+        # Disable inductor JIT for CUDA tests — cuda.h not in test env
+        - export TORCHINDUCTOR_DISABLE=1             # [gpu_variant == "cuda"]
         - python test/smoke_test.py
         # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
         # conda-build's selector parser misinterprets [...] as selectors inside output
