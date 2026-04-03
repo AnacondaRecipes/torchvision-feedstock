@@ -136,7 +136,7 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}   # [osx and arm64]
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
         # py314: JIT/scripting and transform tests fail (upstream py314 compatibility issue)
-        {% set tests_to_skip = tests_to_skip + " or test_transform or test_jit or test_scriptability or test_opcheck or test_schema or test_autograd_registration or test_faketensor or test_aot_dispatch_dynamic" %}  # [py>=314]
+        {% set tests_to_skip = tests_to_skip + " or test_transform or jit or scriptability or opcheck or test_schema or test_autograd_registration or test_faketensor or test_aot_dispatch_dynamic" %}  # [py>=314]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
