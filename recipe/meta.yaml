@@ -1,27 +1,33 @@
-{% set version = "0.23.0" %}
+{% set version = "0.25.0" %}
+{% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
+{% set compatible_pytorch = "2.8" %}
+{% set build = 0 %}
+{% set build = build + 100 %}
+{% set tests_to_skip = "_not_a_real_test" %}
+{% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
+{% set tests_to_skip = 'tests_to_skip + " or (test_decode_bad_encoded_data and decode_webp)"' %}  # [win]
+{% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}  # [osx and arm64]
+{% set tests_to_skip = 'tests_to_skip + " or (test_backward and False-True-mps)"' %}  # [osx and arm64]
+{% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}  # [osx and arm64]
+{% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}  # [osx and arm64]
+{% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
+{% set tests_to_skip = tests_to_skip + " or test_nms_gpu or test_autocast" %}  # [win]
+
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
-{% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.8" %}
-
-{% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
-{% if gpu_variant != "cpu" %}
-{% set build = build + 100 %}
-{% endif %}
-
 package:
   name: torchvision
   version: {{ version }}
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: db5a91569e5eb4a3b02e9eaad6080335f5ae3824890a697f5618541999f04027
+  sha256: a7ac1b3ab489d71f6e27edfad1e27616e4b8a9b1517e60fce4a950600d3510e8
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -30,13 +36,13 @@ source:
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
     - patches/0006-explicitly-configure-mps.patch
     - patches/0007-numpy-2-compatibility-in-dataset.patch
-    - patches/0008-ffmpeg-keyframe.patch # [linux]
+    - patches/0008-ffmpeg-keyframe.patch  # [linux]
 
 build:
-  string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
+  string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cpu"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
-  string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
-  number: {{ build }}
+  string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "metal"]
+  number: 0
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
@@ -50,14 +56,14 @@ requirements:
     - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ compiler('cuda') }}                   # [gpu_variant == "cuda"]
-    - cuda-version {{ cuda_compiler_version }} # [gpu_variant == "cuda"]
-    - libcublas-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
-    - libcusolver-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
-    - libcusparse-dev                        # [build_platform != target_platform and gpu_variant == "cuda"]
-    - libnvjpeg-dev                          # [build_platform != target_platform and gpu_variant == "cuda"]
-    - python                                 # [build_platform != target_platform]
-    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
+    - {{ compiler('cuda') }}  # [gpu_variant == "cuda"]
+    - cuda-version {{ cuda_compiler_version }}  # [gpu_variant == "cuda"]
+    - libcublas-dev  # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libcusolver-dev  # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libcusparse-dev  # [build_platform != target_platform and gpu_variant == "cuda"]
+    - libnvjpeg-dev  # [build_platform != target_platform and gpu_variant == "cuda"]
+    - python  # [build_platform != target_platform]
+    - cross-python_{{ target_platform }}  # [build_platform != target_platform]
     - pytorch ={{ compatible_pytorch }}.*={{ torch_proc_type }}*  # [build_platform != target_platform]
   host:
     - python
@@ -65,12 +71,12 @@ requirements:
     # setup.py imports pkg_resources which was removed in setuptools 82+
     - setuptools <82
     - wheel
-    - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
-    - libcublas-dev                              # [gpu_variant == "cuda"]
-    - libcusolver-dev                            # [gpu_variant == "cuda"]
-    - libcusparse-dev                            # [gpu_variant == "cuda"]
-    - libnvjpeg-dev                              # [gpu_variant == "cuda"]
-    - cuda-cudart-dev                            # [gpu_variant == "cuda"]
+    - cuda-version {{ cuda_compiler_version }}  # [gpu_variant == "cuda"]
+    - libcublas-dev  # [gpu_variant == "cuda"]
+    - libcusolver-dev  # [gpu_variant == "cuda"]
+    - libcusparse-dev  # [gpu_variant == "cuda"]
+    - libnvjpeg-dev  # [gpu_variant == "cuda"]
+    - cuda-cudart-dev  # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
     - jpeg {{ jpeg }}
     - libpng {{ libpng }}
@@ -91,22 +97,6 @@ requirements:
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pillow >=5.3.0,!=8.3.*
 
-test:
-  requires:
-    - pip
-  imports:
-    - torchvision
-    - torchvision.datasets
-    - torchvision.models
-    - torchvision.transforms
-    - torchvision.utils
-  commands:
-    # use pip list to manually check that the version is correctly reported
-    # Otherwise downstream package's pip check may fail
-    - pip list
-    - pip list | grep torchvision | grep {{ version }}         # [unix]
-    - pip check
-
 outputs:
   - name: torchvision
   - name: torchvision-tests
@@ -125,29 +115,36 @@ outputs:
         - references
         - pytest.ini
       commands:
-        - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
+        - export PYTORCH_ENABLE_MPS_FALLBACK=1  # [osx and arm64]
         - python test/smoke_test.py
         # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
         # conda-build's selector parser misinterprets [...] as selectors inside output
         # test sections, causing silent rendering failures on osx-arm64.
         # Use broader patterns (e.g. "test_backward" instead of "test_backward[False-True-mps-0]").
-        {% set tests_to_skip = "_not_a_real_test" %}
-        {% set tests_to_skip = tests_to_skip + " or test_decode_gif" %}
         # libwebp error message changed: test expects "WebPGetFeatures failed." but newer libwebp returns different string
-        {% set tests_to_skip = tests_to_skip + " or (test_decode_bad_encoded_data and decode_webp)" %}  # [win]
-        {% set tests_to_skip = tests_to_skip + " or test_mps_error_inputs" %}       # [osx and arm64]
         # Sporadic marginal math errors on MPS backward pass (originally individual variants 0-9)
-        {% set tests_to_skip = tests_to_skip + " or (test_backward and False-True-mps)" %}  # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_nms_float16" %}            # [osx and arm64]
         # DeformConv aot_dispatch_dynamic fails on MPS
-        {% set tests_to_skip = tests_to_skip + " or test_aot_dispatch_dynamic" %}   # [osx and arm64]
-        {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
         # NMS CUDA kernel tensor size mismatch on Windows
-        {% set tests_to_skip = tests_to_skip + " or test_nms_gpu or test_autocast" %}  # [win]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_ops.py
+
+test:
+  requires:
+    - pip
+  imports:
+    - torchvision
+    - torchvision.datasets
+    - torchvision.models
+    - torchvision.transforms
+    - torchvision.utils
+  commands:
+    # use pip list to manually check that the version is correctly reported
+    # Otherwise downstream package's pip check may fail
+    - pip list
+    - pip list | grep torchvision | grep {{ version }}  # [unix]
+    - pip check
 
 about:
   home: https://pytorch.org/
