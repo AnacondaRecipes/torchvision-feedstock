@@ -37,6 +37,8 @@ build:
   number: {{ build }}
   # CUDA-only split PR — skip CPU/MPS builds (osx dummy variant for Jinja2 rendering)
   skip: true  # [gpu_variant != "cuda"]
+  # pytorch 2.10 has no py3.14 build on pkgs/main yet — skip until rebuilt
+  skip: true  # [py==314]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
