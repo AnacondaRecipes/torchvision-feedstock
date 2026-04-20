@@ -28,7 +28,7 @@ source:
     - patches/0002-Force-nvjpeg-and-force-failure.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
-    - patches/0007-numpy-2-compatibility-in-dataset.patch
+    # 0007 dropped: upstream 0.25.0 already uses .item() at _optical_flow.py:506-507
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
