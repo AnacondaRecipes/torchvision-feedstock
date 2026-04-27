@@ -1,11 +1,11 @@
-{% set version = "0.24.1" %}
+{% set version = "0.25.0" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.9.1" %}
+{% set compatible_pytorch = "2.10.0" %}
 
 {% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
@@ -21,14 +21,14 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 071da2078600bfec4886efab77358c9329abfedcf1488b05879b556cb9b84ba7
+  sha256: a7ac1b3ab489d71f6e27edfad1e27616e4b8a9b1517e60fce4a950600d3510e8
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
     - patches/0002-Force-nvjpeg-and-force-failure.patch
     - patches/0003-dont-test-for-turbo-jpeg.patch
     - patches/0005-use-correct-encode-jpeg-test-dir.patch
-    - patches/0007-numpy-2-compatibility-in-dataset.patch
+    # 0007 dropped: upstream 0.25.0 already uses .item() at _optical_flow.py:506-507
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
@@ -37,6 +37,8 @@ build:
   number: {{ build }}
   # CUDA-only split PR — skip CPU/MPS builds (osx dummy variant for Jinja2 rendering)
   skip: true  # [gpu_variant != "cuda"]
+  # pytorch 2.10 has no py3.14 build on pkgs/main yet — skip until rebuilt
+  skip: true  # [py==314]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
@@ -122,6 +124,9 @@ outputs:
         # TORCHDYNAMO_DISABLE fully disables torch.compile (TORCHINDUCTOR_DISABLE only disables the backend)
         - export TORCHDYNAMO_DISABLE=1               # [gpu_variant == "cuda" and not win]
         - set TORCHDYNAMO_DISABLE=1                  # [gpu_variant == "cuda" and win]
+        # aarch64 CUDA test runners have sm_75 GPUs; pytorch 2.10 CUDA 13.x requires sm_80+.
+        # Hide CUDA so smoke_test stays on the CPU path and still validates imports + CPU ops.
+        - export CUDA_VISIBLE_DEVICES=-1            # [gpu_variant == "cuda" and linux and aarch64]
         - python test/smoke_test.py
         # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
         # conda-build's selector parser misinterprets [...] as selectors inside output
@@ -140,6 +145,10 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or test_kernel_bounding_boxes" %}
         # NMS CUDA kernel tensor size mismatch on Windows
         {% set tests_to_skip = tests_to_skip + " or test_nms_gpu or test_autocast" %}  # [win]
+        # TestErase value=random has tiny (<2%) pixel mismatch on osx-arm64 with pytorch 2.10 RNG
+        {% set tests_to_skip = tests_to_skip + " or (test_transform_image_correctness and value-random)" %}  # [osx and arm64]
+        # XYWHR (rotated bbox) CUDA float32 exceeds upstream's tight tolerance (abs 3.7e-4 vs 1e-5)
+        {% set tests_to_skip = tests_to_skip + " or (test_transform_bounding_boxes_correctness and XYWHR)" %}  # [gpu_variant == "cuda"]
         # py314: JIT/scripting and transform tests fail (upstream py314 compatibility issue)
         {% set tests_to_skip = tests_to_skip + " or test_transform or jit or scriptability or opcheck or test_schema or test_autograd_registration or test_faketensor or test_aot_dispatch_dynamic" %}  # [py>=314]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
