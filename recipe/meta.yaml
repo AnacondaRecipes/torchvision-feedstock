@@ -127,7 +127,7 @@ outputs:
       commands:
         - export PYTORCH_ENABLE_MPS_FALLBACK=1      # [osx and arm64]
         - python test/smoke_test.py
-        # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
+        # NOTE: Do NOT use square brackets in strings (e.g. test_name[param]).
         # conda-build's selector parser misinterprets [...] as selectors inside output
         # test sections, causing silent rendering failures on osx-arm64.
         # Use broader patterns (e.g. "test_backward" instead of "test_backward[False-True-mps-0]").
