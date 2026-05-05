@@ -35,8 +35,6 @@ build:
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
-  # CUDA-only split PR — skip CPU/MPS builds (osx dummy variant for Jinja2 rendering)
-  skip: true  # [gpu_variant != "cuda"]
   # py3.14 rebuild — only build py3.14 (py3.10–3.13 already shipped at build_number 0)
   skip: true  # [py<314]
   script_env:
