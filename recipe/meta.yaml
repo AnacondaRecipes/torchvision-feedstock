@@ -37,6 +37,8 @@ build:
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
+  # Temporary: py3.14-only rebuild — py3.10–3.13 already shipped at build_number 0.
+  # Remove this skip when rebuilding all Python versions (e.g. next version bump).
   skip: true  # [py<314]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
