@@ -7,7 +7,7 @@
 # updated every 0.x release. https://github.com/pytorch/vision#installation
 {% set compatible_pytorch = "2.11.0" %}
 
-{% set build = 0 %}
+{% set build = 1 %}
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
@@ -75,7 +75,11 @@ requirements:
     - pillow >=5.3.0,!=8.3.*
     - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    - pybind11 2.13.6
+    # pybind11 itself not needed: upstream uses torch.utils.cpp_extension
+    # which bundles pybind11 headers via libtorch/pytorch host deps above.
+    # pybind11-abi propagates the run_export pin (==11) for cross-module
+    # ABI safety with the corresponding pytorch build.
+    - pybind11-abi
   run:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
