@@ -75,8 +75,10 @@ requirements:
     - pillow >=5.3.0,!=8.3.*
     - libtorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
-    # pybind11 itself not needed: upstream uses torch.utils.cpp_extension
-    # which bundles pybind11 headers via libtorch/pytorch host deps above.
+    # libtorch's torch/csrc/Exceptions.h does #include <pybind11/pybind11.h>;
+    # the header is not vendored under libtorch's include tree, so pybind11
+    # must be on the host include path. Matches pytorch-feedstock 2.12 pin.
+    - pybind11 >=3.0.1,<4
     # pybind11-abi propagates the run_export pin (==11) for cross-module
     # ABI safety with the corresponding pytorch 2.12 build.
     - pybind11-abi ==11
