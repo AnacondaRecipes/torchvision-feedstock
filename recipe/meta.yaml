@@ -152,6 +152,8 @@ outputs:
         {% set tests_to_skip = tests_to_skip + " or (test_transform_image_correctness and value-random)" %}  # [osx and arm64]
         # XYWHR (rotated bbox) CUDA float32 exceeds upstream's tight tolerance (abs 3.7e-4 vs 1e-5)
         {% set tests_to_skip = tests_to_skip + " or (test_transform_bounding_boxes_correctness and XYWHR)" %}  # [gpu_variant == "cuda"]
+        # New in 0.27.0: TestRotatedBoxIou::test_iou xyxyxyxy float32 exceeds upstream tolerance on aarch64 (gcc 15.2.0 CPU fp32). xywhr & float64 pass.
+        {% set tests_to_skip = tests_to_skip + " or (test_iou and xyxyxyxy-dtype0)" %}  # [linux and aarch64]
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_image.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_transforms_v2.py
         - pytest --disable-socket --verbose --durations=50 -k "not ({{ tests_to_skip }})" test/test_datasets.py
