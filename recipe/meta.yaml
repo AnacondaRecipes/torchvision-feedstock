@@ -7,7 +7,7 @@
 # updated every 0.x release. https://github.com/pytorch/vision#installation
 {% set compatible_pytorch = "2.10.0" %}
 
-{% set build = 0 %}
+{% set build = 1 %}
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
@@ -71,7 +71,7 @@ requirements:
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
-    - jpeg {{ jpeg }}
+    - libjpeg-turbo {{ libjpeg_turbo }}
     - libpng {{ libpng }}
     - libwebp >=1.6.0,<2.0a0
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
