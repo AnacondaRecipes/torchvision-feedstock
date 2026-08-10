@@ -7,13 +7,10 @@
 # updated every 0.x release. https://github.com/pytorch/vision#installation
 {% set compatible_pytorch = "2.13.0" %}
 
-{% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
-{% if gpu_variant != "cpu" %}
-{% set build = build + 100 %}
-{% endif %}
+{% set build = 100 if gpu_variant != "cpu" else 0 %}
 
 package:
   name: torchvision
@@ -107,6 +104,14 @@ test:
 outputs:
   - name: torchvision
   - name: torchvision-tests
+    requirements:
+      # `cuda_compiler` here has no build function for this test-only output, but
+      # it forces PBP to route the test task to a GPU worker pool that provides
+      # the `__cuda` virtual package. Without it the test env can't resolve
+      # (torchvision's `run: [__cuda]` is unsatisfiable on the CPU test pool).
+      # See memory/reference_pbp-gpu-worker-routing.md.
+      build:
+        - {{ compiler('cuda') }}                # [gpu_variant == "cuda"]
     test:
       requires:
         - pytest
