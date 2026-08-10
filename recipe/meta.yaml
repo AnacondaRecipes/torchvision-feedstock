@@ -1,11 +1,11 @@
-{% set version = "0.27.0" %}
+{% set version = "0.28.0" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.12.0" %}
+{% set compatible_pytorch = "2.13.0" %}
 
 {% set build = 0 %}
 # Use a higher build number for the GPU variants, to ensure that they're
@@ -21,7 +21,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 04c588d80e63903e1e4444db8a1c32dc56e4080ed48782555e1d00752d6edb17
+  sha256: ecc4451241c8eeadc0c88213bd65c7932c9622d1d0034254b938f25362283ee9
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -34,8 +34,12 @@ build:
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
-  # CPU/MPS split PR — skip CUDA builds (per unified-recipe design: identical across cpu/cuda129/cuda130 PRs except this line)
-  skip: true  # [gpu_variant == "cuda"]
+  # CPU/MPS split PR — skip CUDA builds. win-64 CPU is temporarily also skipped
+  # (`or win`): the win-64 non-CUDA PBP pool claim-expires (SIR-3657) and the
+  # Windows codesign path is broken, so win-64 CPU is built off-CI and manually
+  # released separately — revert `or win` once both are fixed.
+  # (per unified-recipe design: identical across cpu/cuda129/cuda130 PRs except this line)
+  skip: true  # [gpu_variant == "cuda" or win]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
@@ -77,10 +81,10 @@ requirements:
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     # libtorch's torch/csrc/Exceptions.h does #include <pybind11/pybind11.h>;
     # the header is not vendored under libtorch's include tree, so pybind11
-    # must be on the host include path. Matches pytorch-feedstock 2.12 pin.
+    # must be on the host include path. Matches pytorch-feedstock 2.13 pin.
     - pybind11 >=3.0.1,<4
     # pybind11-abi propagates the run_export pin (==11) for cross-module
-    # ABI safety with the corresponding pytorch 2.12 build.
+    # ABI safety with the corresponding pytorch 2.13 build.
     - pybind11-abi ==11
   run:
     - python
@@ -127,10 +131,10 @@ outputs:
         # TORCHDYNAMO_DISABLE fully disables torch.compile (TORCHINDUCTOR_DISABLE only disables the backend)
         - export TORCHDYNAMO_DISABLE=1               # [gpu_variant == "cuda" and not win]
         - set TORCHDYNAMO_DISABLE=1                  # [gpu_variant == "cuda" and win]
-        # aarch64 CUDA test runners have sm_75 GPUs; pytorch 2.12 CUDA 13.x requires sm_80+.
+        # aarch64 CUDA test runners have sm_75 GPUs; pytorch 2.13 CUDA 13.x requires sm_80+.
         # Hide CUDA so smoke_test stays on the CPU path and still validates imports + CPU ops.
         - export CUDA_VISIBLE_DEVICES=-1            # [gpu_variant == "cuda" and linux and aarch64]
-        # Win-64 + pytorch 2.12 + Python <3.12: torch.hub.download_url_to_file
+        # Win-64 + pytorch 2.13 + Python <3.12: torch.hub.download_url_to_file
         # hits ssl.SSLError [ASN1: NOT_ENOUGH_DATA] in _load_windows_store_certs
         # while downloading ResNet50 weights for smoke_test_torchvision_resnet50_classify.
         # (Worked on 0.26.0 with pytorch 2.11; 2.12 changed the download path to
