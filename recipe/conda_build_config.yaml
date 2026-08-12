@@ -9,8 +9,9 @@
 # `cuda_compiler_version: [none, none, 12.9, 13.0]` via the zip_keys block:
 #   row 3 (selector: win or linux-x86_64) pairs with cuda_compiler_version 12.9
 #   row 4 (selector: win or linux)        pairs with cuda_compiler_version 13.0
-# linux-aarch64 only matches the second cuda line, so it builds cuda 13.0 only
-# (CUDA 12.x requires gcc <15 but aarch64 needs gcc 15.2.0).
+# linux-aarch64 is excluded from the 12.9 row and builds cuda 13.0 only: aarch64
+# must use gcc 15.2.0 (gcc-14.3 aarch64 codegen bug), which CUDA 12.x nvcc rejects
+# but CUDA 13.x accepts. (So the 12.9-aarch64 nvcc package is never used here.)
 gpu_variant:
   - cpu                              # all platforms
   - metal                            # [(osx and arm64)]

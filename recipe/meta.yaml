@@ -62,7 +62,7 @@ requirements:
     - libnvjpeg-dev                              # [gpu_variant == "cuda"]
     - cuda-cudart-dev                            # [gpu_variant == "cuda"]
     # split off image/video into separate outputs?
-    - jpeg {{ jpeg }}
+    - libjpeg-turbo {{ libjpeg_turbo }}
     - libpng {{ libpng }}
     - libwebp >=1.6.0,<2.0a0
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
@@ -107,7 +107,6 @@ outputs:
       # it forces PBP to route the test task to a GPU worker pool that provides
       # the `__cuda` virtual package. Without it the test env can't resolve
       # (torchvision's `run: [__cuda]` is unsatisfiable on the CPU test pool).
-      # See memory/reference_pbp-gpu-worker-routing.md.
       build:
         - {{ compiler('cuda') }}                # [gpu_variant == "cuda"]
     test:
