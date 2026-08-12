@@ -31,12 +31,8 @@ build:
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
-  # CPU/MPS split PR — skip CUDA builds. win-64 CPU is temporarily also skipped
-  # (`or win`): the win-64 non-CUDA PBP pool claim-expires (SIR-3657) and the
-  # Windows codesign path is broken, so win-64 CPU is built off-CI and manually
-  # released separately — revert `or win` once both are fixed.
-  # (per unified-recipe design: identical across cpu/cuda129/cuda130 PRs except this line)
-  skip: true  # [gpu_variant == "cuda" or win]
+  # CPU/MPS split PR — skip CUDA builds (per unified-recipe design: identical across cpu/cuda129/cuda130 PRs except this line)
+  skip: true  # [gpu_variant == "cuda"]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
