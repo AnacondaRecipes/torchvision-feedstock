@@ -4,35 +4,34 @@ Date: Mon, 10 Aug 2026 09:26:13 -0500
 Subject: [PATCH 2/3] Force nvjpeg and force failure
 
 ---
- setup.py | 17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ setup.py | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/setup.py b/setup.py
-index 1f4a1a7..98fb040 100644
+index 3744e46..6ce47dc 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -345,17 +345,14 @@ def make_image_extension():
+@@ -368,12 +368,14 @@ def make_image_stable_extension():
              warnings.warn("Building torchvision without WEBP support")
  
      if USE_NVJPEG and (torch.cuda.is_available() or FORCE_CUDA):
 -        nvjpeg_found = CUDA_HOME is not None and (Path(CUDA_HOME) / "include/nvjpeg.h").exists()
--
 -        if nvjpeg_found:
 -            print("Building torchvision with NVJPEG image support")
 -            libraries.append("nvjpeg")
 -            define_macros += [("NVJPEG_FOUND", 1)]
 -            Extension = CUDAExtension
--        else:
--            warnings.warn("Building torchvision without NVJPEG support")
 +        # Upstream's nvjpeg.h-under-CUDA_HOME probe doesn't fit the conda layout
 +        # (headers come from libnvjpeg-dev); force nvjpeg on for CUDA builds.
 +        print("Building torchvision with NVJPEG image support")
 +        libraries.append("nvjpeg")
 +        define_macros += [("NVJPEG_FOUND", 1)]
 +        Extension = CUDAExtension
-     elif USE_NVJPEG:
--        warnings.warn("Building torchvision without NVJPEG support")
++    elif USE_NVJPEG:
 +        raise RuntimeError("NVJPEG Requested but building without it")
  
      return Extension(
-         name="torchvision.image",
+         name="torchvision.image_stable",
+--
+2.47.0
+
