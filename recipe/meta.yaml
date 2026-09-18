@@ -10,7 +10,7 @@
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
-{% set build = 100 if gpu_variant != "cpu" else 0 %}
+{% set build = 101 if gpu_variant != "cpu" else 1 %}
 
 package:
   name: torchvision
