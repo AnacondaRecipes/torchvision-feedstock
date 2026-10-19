@@ -1,16 +1,18 @@
-{% set version = "0.29.0" %}
+{% set version = "0.29.1" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
 {% set torch_proc_type = "cuda" ~ cuda_compiler_version | replace('.', '') if gpu_variant == "cuda" else "mps" if gpu_variant == "metal" else "cpu" %}
 # Upstream has specific compatability ranges for pytorch and python which are
 # updated every 0.x release. https://github.com/pytorch/vision#installation
-{% set compatible_pytorch = "2.14.0" %}
+# Upstream is ABI-stable from torch 2.14.0 (setup.py TORCH_MIN_VERSION); host run_exports may raise the
+# packaged runtime floor.
+{% set compatible_pytorch = "2.14" %}
 
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
 # installed where the platform supports it.
-{% set build = 101 if gpu_variant != "cpu" else 1 %}
+{% set build = 100 if gpu_variant != "cpu" else 0 %}
 
 package:
   name: torchvision
@@ -18,7 +20,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 24be57d922927d8a2ac2e8f076f07c3447ddf8f1d25ddbb7b65578f36c9ab8e3
+  sha256: 0a14655bd32095148d93fa595f93aba45dda0d13b25cc7fe86a041340e4a4862
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -52,8 +54,7 @@ requirements:
   host:
     - python
     - pip
-    # setup.py imports pkg_resources which was removed in setuptools 82+
-    - setuptools <82
+    - setuptools
     - wheel
     - cuda-version {{ cuda_compiler_version }}   # [gpu_variant == "cuda"]
     - libcublas-dev                              # [gpu_variant == "cuda"]
@@ -64,6 +65,7 @@ requirements:
     # split off image/video into separate outputs?
     - libjpeg-turbo {{ libjpeg_turbo }}
     - libpng {{ libpng }}
+    # Deliberate lock instead of the CBC libwebp pin: aligns with ffmpeg's libwebp pinning (44759cd).
     - libwebp >=1.6.0,<2.0a0
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - giflib {{ giflib }}
@@ -81,7 +83,12 @@ requirements:
     - python
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     - __cuda                                      # [gpu_variant == "cuda"]
+    - numpy
     - pillow >=5.3.0,!=8.3.*
+  run_constrained:
+    # setup.py python_requires excludes 3.14.1; gdown is the only bounded extra (scipy is unbounded).
+    - python !=3.14.1
+    - gdown >=4.7.3
 
 test:
   requires:
@@ -179,7 +186,7 @@ about:
   description: |
     The torchvision package consists of popular datasets, model architectures, and common image transformations for computer vision.
   dev_url: https://github.com/pytorch/vision
-  doc_url: https://pytorch.org/docs/stable/index.html
+  doc_url: https://docs.pytorch.org/vision/stable/index.html
 
 extra:
   recipe-maintainers:
@@ -188,5 +195,3 @@ extra:
     - nehaljwani
     - hmaarrfk
     - h-vetinari
-  skip-lints:
-    - python_build_tool_in_run
