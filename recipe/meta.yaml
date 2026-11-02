@@ -1,4 +1,4 @@
-{% set version = "0.29.1" %}
+{% set version = "0.29.2" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
@@ -7,7 +7,7 @@
 # updated every 0.x release. https://github.com/pytorch/vision#installation
 # Upstream is ABI-stable from torch 2.14.0 (setup.py TORCH_MIN_VERSION); host run_exports may raise the
 # packaged runtime floor.
-{% set compatible_pytorch = "2.14" %}
+{% set compatible_pytorch = "2.15" %}
 
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
@@ -20,7 +20,7 @@ package:
 
 source:
   url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 0a14655bd32095148d93fa595f93aba45dda0d13b25cc7fe86a041340e4a4862
+  sha256: 6239575329eb0149ff7a7f5cabfab254129f758961afdba650aab37276d8196d
   patches:
     # https://github.com/pytorch/vision/pull/8406/files#r1730151047
     - patches/0001-Use-system-giflib.patch
@@ -33,6 +33,8 @@ build:
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
+  # pytorch 2.15 requires python >=3.11 (no py3.10 builds); torchvision itself allows >=3.10.
+  skip: true  # [py<311]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
@@ -74,10 +76,10 @@ requirements:
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     # libtorch's torch/csrc/Exceptions.h does #include <pybind11/pybind11.h>;
     # the header is not vendored under libtorch's include tree, so pybind11
-    # must be on the host include path. Matches pytorch-feedstock 2.14 pin.
+    # must be on the host include path. Matches pytorch-feedstock 2.15 pin.
     - pybind11 >=3.0.4,<4
     # pybind11-abi propagates the run_export pin (==11) for cross-module
-    # ABI safety with the corresponding pytorch 2.14 build.
+    # ABI safety with the corresponding pytorch 2.15 build.
     - pybind11-abi ==11
   run:
     - python
@@ -136,7 +138,7 @@ outputs:
         # TORCHDYNAMO_DISABLE fully disables torch.compile (TORCHINDUCTOR_DISABLE only disables the backend)
         - export TORCHDYNAMO_DISABLE=1               # [gpu_variant == "cuda" and not win]
         - set TORCHDYNAMO_DISABLE=1                  # [gpu_variant == "cuda" and win]
-        # aarch64 CUDA test runners have sm_75 GPUs; pytorch 2.14 CUDA 13.x requires sm_80+.
+        # aarch64 CUDA test runners have sm_75 GPUs; pytorch's aarch64 CUDA 13.x builds require sm_80+.
         # Hide CUDA so smoke_test stays on the CPU path and still validates imports + CPU ops.
         - export CUDA_VISIBLE_DEVICES=-1            # [gpu_variant == "cuda" and linux and aarch64]
         # Win-64 + pytorch 2.14 + Python <3.12: torch.hub.download_url_to_file
