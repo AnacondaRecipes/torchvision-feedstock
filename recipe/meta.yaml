@@ -1,4 +1,4 @@
-{% set version = "0.29.1" %}
+{% set version = "0.29.2" %}
 # see github.com/conda-forge/conda-forge.github.io/issues/1059 for naming discussion
 # torchvision requires that CUDA major and minor versions match with pytorch
 # https://github.com/pytorch/vision/blob/fa99a5360fbcd1683311d57a76fcc0e7323a4c1e/torchvision/extension.py#L79C1-L85C1
@@ -7,7 +7,7 @@
 # updated every 0.x release. https://github.com/pytorch/vision#installation
 # Upstream is ABI-stable from torch 2.14.0 (setup.py TORCH_MIN_VERSION); host run_exports may raise the
 # packaged runtime floor.
-{% set compatible_pytorch = "2.14" %}
+{% set compatible_pytorch = "2.15" %}
 
 # Use a higher build number for the GPU variants, to ensure that they're
 # preferred by conda's solver, and they're preferentially
@@ -19,20 +19,31 @@ package:
   version: {{ version }}
 
 source:
-  url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
-  sha256: 0a14655bd32095148d93fa595f93aba45dda0d13b25cc7fe86a041340e4a4862
-  patches:
-    # https://github.com/pytorch/vision/pull/8406/files#r1730151047
-    - patches/0001-Use-system-giflib.patch
-    - patches/0002-Force-nvjpeg-and-force-failure.patch
-    - patches/0003-dont-test-for-turbo-jpeg.patch
-    - patches/0005-use-correct-encode-jpeg-test-dir.patch
+  - url: https://github.com/pytorch/vision/archive/refs/tags/v{{ version }}.tar.gz
+    sha256: 6239575329eb0149ff7a7f5cabfab254129f758961afdba650aab37276d8196d
+    patches:
+      # https://github.com/pytorch/vision/pull/8406/files#r1730151047
+      - patches/0001-Use-system-giflib.patch
+      - patches/0002-Force-nvjpeg-and-force-failure.patch
+      - patches/0003-dont-test-for-turbo-jpeg.patch
+      - patches/0005-use-correct-encode-jpeg-test-dir.patch
+      # Backport of pytorch/vision#9717 (c725e823, after v0.29.2): Pillow >= 13 rejects posterize(bits=0), and its
+      # vertical-first resize order breaks the PIL reference in TestResize::test_image_correctness.
+      - patches/0006-Fix-tests-after-PIL-13.patch
+  # MIT license text that the Microsoft notice in csrc/ops/{cpu,cuda}/deform_conv2d_kernel.* points to
+  # ("Licensed under The MIT License [see LICENSE for details]"); the file itself doesn't carry it.
+  - url: https://raw.githubusercontent.com/msracver/Deformable-ConvNets/6aeda878a95bcb55eadffbe125804e730574de8d/LICENSE
+    sha256: f4537a9a339834394f5242176a4ed19b239a88a600bcb02041205f48b3c07dfc
+    fn: Deformable-ConvNets-LICENSE.txt
+    folder: third_party/licenses
 
 build:
   string: cpu_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "cpu"]
   string: cuda{{ cuda_compiler_version | replace('.', '') }}py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [gpu_variant == "cuda"]
   string: mps_py{{ CONDA_PY }}h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}                                                # [gpu_variant == "metal"]
   number: {{ build }}
+  # pytorch 2.15 requires python >=3.11 (no py3.10 builds); torchvision itself allows >=3.10.
+  skip: true  # [py<311]
   script_env:
     # required by the setup.py script to find the right version in 0.20.1
     - BUILD_VERSION={{ version }}
@@ -74,10 +85,10 @@ requirements:
     - pytorch ={{ compatible_pytorch }}.*=*{{ torch_proc_type }}*
     # libtorch's torch/csrc/Exceptions.h does #include <pybind11/pybind11.h>;
     # the header is not vendored under libtorch's include tree, so pybind11
-    # must be on the host include path. Matches pytorch-feedstock 2.14 pin.
+    # must be on the host include path. Matches pytorch-feedstock 2.15 pin.
     - pybind11 >=3.0.4,<4
     # pybind11-abi propagates the run_export pin (==11) for cross-module
-    # ABI safety with the corresponding pytorch 2.14 build.
+    # ABI safety with the corresponding pytorch 2.15 build.
     - pybind11-abi ==11
   run:
     - python
@@ -136,14 +147,13 @@ outputs:
         # TORCHDYNAMO_DISABLE fully disables torch.compile (TORCHINDUCTOR_DISABLE only disables the backend)
         - export TORCHDYNAMO_DISABLE=1               # [gpu_variant == "cuda" and not win]
         - set TORCHDYNAMO_DISABLE=1                  # [gpu_variant == "cuda" and win]
-        # aarch64 CUDA test runners have sm_75 GPUs; pytorch 2.14 CUDA 13.x requires sm_80+.
+        # aarch64 CUDA test runners have sm_75 GPUs; pytorch's aarch64 CUDA 13.x builds require sm_80+.
         # Hide CUDA so smoke_test stays on the CPU path and still validates imports + CPU ops.
         - export CUDA_VISIBLE_DEVICES=-1            # [gpu_variant == "cuda" and linux and aarch64]
-        # Win-64 + pytorch 2.14 + Python <3.12: torch.hub.download_url_to_file
-        # hits ssl.SSLError [ASN1: NOT_ENOUGH_DATA] in _load_windows_store_certs
-        # while downloading ResNet50 weights for smoke_test_torchvision_resnet50_classify.
-        # (Worked on 0.26.0 with pytorch 2.11; 2.12 changed the download path to
-        # urlopen which loses the certifi fallback.) Run the offline portions only.
+        # Windows (win-64 and win-arm64): since pytorch 2.12, torch.hub.download_url_to_file uses a bare urlopen
+        # with no certifi fallback, and on win-64 it hit ssl.SSLError [ASN1: NOT_ENOUGH_DATA] in
+        # _load_windows_store_certs downloading the ResNet50 weights for smoke_test_torchvision_resnet50_classify.
+        # pytorch 2.15 still uses the bare urlopen (torch/hub.py), so run the offline portions only.
         - python -c "import sys; sys.path.insert(0, 'test'); import smoke_test as st; st.smoke_test_torchvision(); st.smoke_test_torchvision_read_decode(); st.smoke_test_torchvision_decode_jpeg(); print('skipped resnet50_classify on win (cert-store regression)')"  # [win]
         - python test/smoke_test.py  # [not win]
         # NOTE: Do NOT use square brackets in {% set %} strings (e.g. test_name[param]).
@@ -183,9 +193,15 @@ outputs:
 
 about:
   home: https://pytorch.org/
-  license: BSD-3-Clause
-  license_family: BSD
-  license_file: LICENSE
+  # Compiled sources also carry third-party notices: OpenCV/Intel (BSD-3-Clause, io/image/cpu/exif.h) and
+  # Caffe (BSD-2-Clause) + Microsoft Deformable ConvNets (MIT) in ops/{cpu,cuda}/deform_conv2d_kernel.*.
+  license: BSD-3-Clause AND BSD-2-Clause AND MIT
+  license_family: Other
+  license_file:
+    - LICENSE
+    - torchvision/csrc/io/image/cpu/exif.h
+    - torchvision/csrc/ops/cpu/deform_conv2d_kernel.cpp
+    - third_party/licenses/Deformable-ConvNets-LICENSE.txt
   summary: Image and video datasets and models for torch deep learning
   description: |
     The torchvision package consists of popular datasets, model architectures, and common image transformations for computer vision.
